@@ -53,7 +53,7 @@ public class AltaReclamoActivity extends AppCompatActivity implements View.OnCli
         btnAgregar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                accionAgregarReclamo();
+              //  accionAgregarReclamo();
             }
         });
         btnCancelar.setOnClickListener(new View.OnClickListener() {
@@ -64,6 +64,7 @@ public class AltaReclamoActivity extends AppCompatActivity implements View.OnCli
         });
         btnAgregarFoto.setOnClickListener(this);
     }
+    /*
     public void accionAgregarReclamo(){
         Reclamo reclamo = new Reclamo();
         reclamo.setEmail(txtMail.getText().toString());
@@ -78,6 +79,7 @@ public class AltaReclamoActivity extends AppCompatActivity implements View.OnCli
         setResult(Activity.RESULT_OK,resultado);
         finish();
     }
+    */
     public void accionCancelar(){
         setResult(Activity.RESULT_CANCELED);
         finish();

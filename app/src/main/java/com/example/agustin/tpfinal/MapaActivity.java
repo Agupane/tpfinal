@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -38,9 +39,6 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mapa);
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -49,6 +47,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .addApi(LocationServices.API)
                     .build();
         }
+        mGoogleApiClient.connect();
     }
 
     @Override
@@ -97,8 +96,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapa.setOnMapLongClickListener(this);
         mapa.setOnInfoWindowClickListener(this);
         mapa.setInfoWindowAdapter(ventanaInfo);
-        enfocarMapaEnUbicacionActual(ubicacionActual);
-
+        enfocarMapaEnUbicacion(ubicacionActual);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -207,8 +205,12 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    private void enfocarMapaEnUbicacionActual(Location location){
+    /**
+     * Recibe una ubicacion y enfoca el mapa en ese punto
+     */
+    private void enfocarMapaEnUbicacion(Location location){
         if(location!=null){
+            Log.v("UBICACION ","Ubicacion encontrada, enfocando mapa en coordenadas");
             LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
             CameraPosition position = this.mapa.getCameraPosition();
 
@@ -218,6 +220,10 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             this.mapa.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
         }
+        else{
+            Log.v("UBICACION ","La ubicacion es nula y no se puede enfocar el mapa");
+        }
+
     }
 
     @Override
@@ -231,11 +237,15 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
+            Log.v("PERMISOS ","No hay permisos para obtener la ubicacion actual");
             return;
         }
         /** Tengo permisos */
         else{
+            Log.v("PERMISOS","Permisos para obtener ubicacion concedidos, obteniendo ubicacion y generando mapa...");
             ubicacionActual = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
         }
     }
 

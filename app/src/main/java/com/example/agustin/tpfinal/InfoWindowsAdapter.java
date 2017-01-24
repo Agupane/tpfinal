@@ -22,7 +22,7 @@ public class InfoWindowsAdapter implements GoogleMap.InfoWindowAdapter {
     private final View myContentsView;
     private Context context;
     private LayoutInflater linf;
-    private Map<Marker,Reclamo> listaReclamos;
+   // private Map<Marker,Reclamo> listaReclamos;
     public InfoWindowsAdapter(Context c){
         this.context=c;
 
@@ -43,16 +43,18 @@ public class InfoWindowsAdapter implements GoogleMap.InfoWindowAdapter {
         //TextView tvSnippet = ((TextView)myContentsView.findViewById(R.id.snippet));
         //tvSnippet.setText(marker.getSnippet());
 
-        File fotoMarker = listaReclamos.get(marker).getFoto();
+      //  File fotoMarker = listaReclamos.get(marker).getFoto();
+        /*
         if(fotoMarker != null){
             Bitmap imageBitmap = BitmapFactory.decodeFile(fotoMarker.getAbsolutePath());
             imageView.setImageBitmap(imageBitmap);
         }
-
+*/
         return myContentsView;
     }
-
+/*
     public void setListaReclamos(Map<Marker,Reclamo> listaReclamos){
         this.listaReclamos=listaReclamos;
     }
+    */
 }
