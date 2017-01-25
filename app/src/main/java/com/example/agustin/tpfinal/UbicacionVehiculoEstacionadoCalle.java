@@ -15,10 +15,20 @@ public class UbicacionVehiculoEstacionadoCalle extends UbicacionVehiculoEstacion
         super(ubicacion);
     }
     /** Devuelve el nombre de la calle en donde se encuentra estacionado
+     * en formato nombre calle - numero - nombre ciudad
      * @return
      */
     public String getTitulo(){
-//        return getDireccion().toString();
-        return "ASDA";
+        StringBuilder titulo = new StringBuilder();
+        titulo.append(direccion.getAddressLine(0));
+        titulo.append(", ");
+        titulo.append(direccion.getLocality());
+        if(titulo.length()>0) {
+            return titulo.toString();
+        }
+        if(direccion != null){
+            return direccion.getLatitude()+" "+direccion.getLongitude();
+        }
+        return "Vehiculo";
     }
 }

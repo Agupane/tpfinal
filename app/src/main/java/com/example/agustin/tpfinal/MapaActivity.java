@@ -324,7 +324,6 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             /** TODO -- Agregar foto del lugar de la calle obteniendolo de google */
            // markerUltimoEstacionamiento = agregarMarcador(latLngActual,titulo,null);
             markerUltimoEstacionamiento = agregarMarcadorEstacionamiento(estCalle);
-
             persistirUbicacion(estCalle);
         }
         mAddressRequested = true;
@@ -336,6 +335,10 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void persistirUbicacion(UbicacionVehiculoEstacionado ubicacionEstacionado){
 
     }
+
+    private void actualizarUbicacionPersistida(UbicacionVehiculoEstacionadoCalle estCalle) {
+    }
+
     /**
      * Recibe una ubicacion y enfoca el mapa en ese punto
      */
@@ -368,12 +371,15 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         Address direccion; // Direccion obtenida en la busqueda
         /** Si el resultado es exitoso, espero recibir la direccion en formado de address */
         if (resultCode == ConstantsAddresses.SUCCESS_RESULT) {
-            direccion = resultData.getParcelable(ConstantsAddresses.RESULT_DATA_KEY);;
+            direccion = resultData.getParcelable(ConstantsAddresses.RESULT_DATA_KEY);
             estCalle.setDireccion(direccion);
+            markerUltimoEstacionamiento.setTitle(estCalle.getTitulo());
+            actualizarUbicacionPersistida(estCalle);
         }
         /** Si el resultado no es exitoso, espero recibir el mensaje de error en forma de string */
         else{
             errorMessage = resultData.getString(ConstantsAddresses.RESULT_DATA_KEY);
         }
     }
+
 }

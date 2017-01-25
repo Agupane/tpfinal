@@ -5,16 +5,19 @@ import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.util.Locale;
+
 /**
  * Created by Agustin on 01/24/2017.
  */
 
 public abstract class UbicacionVehiculoEstacionado {
-    private Location ubicacion;
-    private Address direccion;
-    private Long horaIngreso,horaEgreso;
+    protected Address direccion;
+    protected Long horaIngreso,horaEgreso;
     public UbicacionVehiculoEstacionado(Location ubicacion) {
-        this.ubicacion = ubicacion;
+        direccion = new Address(Locale.getDefault());
+        direccion.setLongitude(ubicacion.getLongitude());
+        direccion.setLatitude(ubicacion.getLatitude());
 
     }
 
@@ -26,20 +29,12 @@ public abstract class UbicacionVehiculoEstacionado {
         this.direccion = direccion;
     }
 
-    public Location getUbicacion() {
-        return ubicacion;
-    }
-
-    public void setUbicacion(Location ubicacion) {
-        this.ubicacion = ubicacion;
-    }
-
     /**
      * Devuelve latitud y longitud del estacionamiento
      * @return
      */
     public LatLng getCoordenadas(){
-        LatLng latLng = new LatLng(ubicacion.getLatitude(),ubicacion.getLongitude());
+        LatLng latLng = new LatLng(direccion.getLatitude(),direccion.getLongitude());
         return latLng;
     }
 
@@ -57,5 +52,21 @@ public abstract class UbicacionVehiculoEstacionado {
 
     public void setHoraIngreso(Long horaIngreso) {
         this.horaIngreso = horaIngreso;
+    }
+
+    /** Devuelve el tiempo en minutos que el vehiculo estuvo en el estacionamiento
+     * Si el vehiculo aun sigue estacionado devuelve -1
+     */
+    public long calcularTiempoEstacionado(){
+        long minutos,diferencia;
+        if(horaEgreso!=null){
+            diferencia = horaIngreso-horaEgreso;
+            minutos = diferencia/1000;
+            minutos = minutos % 60;
+        }
+        else{
+            minutos = -1;
+        }
+        return minutos;
     }
 }
