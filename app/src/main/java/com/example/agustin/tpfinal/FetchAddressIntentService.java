@@ -18,20 +18,18 @@ import java.util.Locale;
 import static android.content.ContentValues.TAG;
 
 /**
- * An {@link IntentService} subclass for handling asynchronous task requests in
- * a service on a separate handler thread.
- * <p>
- * TODO: Customize class - update intent actions, extra parameters and static
- * helper methods.
+    Servicio que permite asociar ubicaciones a direcciones de manera asincronica
  */
 public class FetchAddressIntentService extends IntentService {
     private Location ubicacionAObtenerAddress;
     private Double latitude,longitude;
     private String errorMessage;
+    private StringBuilder direccion;
     protected ResultReceiver mReceiver;
     private final String TAG = "AddressService";
     public FetchAddressIntentService() {
         super("FetchAddressIntentService");
+        direccion = new StringBuilder();
     }
 
     @Override
@@ -79,17 +77,30 @@ public class FetchAddressIntentService extends IntentService {
                     addressFragments.add(address.getAddressLine(i));
                 }
                 Log.i(TAG, getString(R.string.address_found));
-                deliverResultToReceiver(ConstantsAddresses.SUCCESS_RESULT,
-                        TextUtils.join(System.getProperty("line.separator"),
-                                addressFragments));
+                deliverResultToReceiver(ConstantsAddresses.SUCCESS_RESULT,address);
             }
         }
     }
+    /** Envia la direccion si no se produjeron errores */
+    private void deliverResultToReceiver(int resultCode, Address message) {
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(ConstantsAddresses.RESULT_DATA_KEY,message);
+        mReceiver.send(resultCode, bundle);
+    }
+
+    /** Envia la direccion si no se produjieron errores */
+    /*
+    private void deliverResultToReceiver(int resultCode, ArrayList<String> message) {
+        Bundle bundle = new Bundle();
+        bundle.putStringArrayList(ConstantsAddresses.RESULT_DATA_KEY,message);
+        mReceiver.send(resultCode, bundle);
+    }
+    */
+    /** Si se produjieron errores, envia un mensaje */
     private void deliverResultToReceiver(int resultCode, String message) {
         Bundle bundle = new Bundle();
         bundle.putString(ConstantsAddresses.RESULT_DATA_KEY, message);
         mReceiver.send(resultCode, bundle);
     }
-
 
 }

@@ -4,14 +4,17 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,20 +36,33 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
-public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver {
+    /** Mapa de google a mostrar */
     private GoogleMap mapa;
+    /** Cliente de api de google para utilizar el servicio de localizacion */
     private GoogleApiClient mGoogleApiClient;
+    /** Ultima ubicacion en donde se encuentra la persona */
     private Location ubicacionActual;
-    private Marker marcadorSelected;
+    /** Adaptador que permite cargar con datos la ventana de informacion de los marcadores */
     private InfoWindowsAdapter ventanaInfo;
+    /** Ubicacion del vehiculo cuando estaciona en la calle */
     private UbicacionVehiculoEstacionadoCalle estCalle;
-    private AddressResultReceiver mResultReceiver;
+    /** Marcador que indica el ultimo lugar donde la persona realizo un estacionamiento */
     private Marker markerUltimoEstacionamiento;
+    /** Marcador que indica el ultimo marcador que fue seleccionado por el usuario */
+    private Marker marcadorSelected;
+    /** Clase que recibe de manera asincronica resultados del servicio de calles y envia los mismos a esta actividad */
+    private static AddressResultReceiver mResultReceiver;
     /** Indica si se solicito obtener una direccion o no */
     private Boolean mAddressRequested = false;
-    /** Permite obtener la direccion acorde a una ubicacion pasada */
+    /** Servicio que permite obtener la direccion acorde a una ubicacion pasada */
     private FetchAddressIntentService buscarCallesService;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,7 +76,8 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .build();
         }
         mGoogleApiClient.connect();
-        mResultReceiver = new AddressResultReceiver(null);
+        mResultReceiver = new AddressResultReceiver(new Handler());
+        mResultReceiver.setReceiver(this);
     }
 
     @Override
@@ -78,6 +95,18 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
+    }
+
+    @Override
+    public void onResume(){
+        mResultReceiver.setReceiver(this);
+        super.onResume();
+    }
+
+    @Override
+    public void onPause(){
+        mResultReceiver.setReceiver(null);
+        super.onPause();
     }
 
     @Override
@@ -150,6 +179,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    /** Se conecta con location services de google */
     public void onConnected(@Nullable Bundle bundle) {
         /** Pido permisos de ubicacion */
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -191,6 +221,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+
     /**
      * Inicializa el servicio que se encarga de buscar direcciones dada una ubicacion
      */
@@ -201,8 +232,12 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         startService(intent);
     }
 
-
-    public void agregarMarcador(UbicacionVehiculoEstacionadoCalle estacionamiento) {
+    /**
+     * Agrega un marcador asociado al estacionamiento de una persona (la ubicacion donde estaciono)
+     * @param estacionamiento
+     * @return
+     */
+    public Marker agregarMarcadorEstacionamiento(UbicacionVehiculoEstacionadoCalle estacionamiento) {
         Marker marker = mapa.addMarker(new MarkerOptions()
                 .position(estacionamiento.getCoordenadas())
                 .title(estacionamiento.getTitulo()));
@@ -216,8 +251,9 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         */
       //  ventanaInfo.setListaReclamos(listaReclamos);
+        return marker;
     }
-
+    /*
     public Marker agregarMarcador(LatLng latLng, String titulo, File foto) {
         Marker marker = mapa.addMarker(new MarkerOptions()
                 .position(latLng)
@@ -232,6 +268,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         marker.showInfoWindow();
         return marker;
     }
+    */
 
     @Override
     public void onInfoWindowClick(Marker marker) {
@@ -286,7 +323,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             String titulo = String.valueOf(R.string.titMarcadorEstacionamiento);
             /** TODO -- Agregar foto del lugar de la calle obteniendolo de google */
            // markerUltimoEstacionamiento = agregarMarcador(latLngActual,titulo,null);
-            agregarMarcador(estCalle);
+            markerUltimoEstacionamiento = agregarMarcadorEstacionamiento(estCalle);
 
             persistirUbicacion(estCalle);
         }
@@ -320,7 +357,23 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-
-
-
+    /**
+     * Metodo que permite recibir el resultado de la busqueda de direccion de calle asincronicamente
+     * @param resultCode
+     * @param resultData
+     */
+    @Override
+    public void onReceiveResult(int resultCode, Bundle resultData) {
+        String errorMessage; // Msg de error obtenido en la busqueda
+        Address direccion; // Direccion obtenida en la busqueda
+        /** Si el resultado es exitoso, espero recibir la direccion en formado de address */
+        if (resultCode == ConstantsAddresses.SUCCESS_RESULT) {
+            direccion = resultData.getParcelable(ConstantsAddresses.RESULT_DATA_KEY);;
+            estCalle.setDireccion(direccion);
+        }
+        /** Si el resultado no es exitoso, espero recibir el mensaje de error en forma de string */
+        else{
+            errorMessage = resultData.getString(ConstantsAddresses.RESULT_DATA_KEY);
+        }
+    }
 }
