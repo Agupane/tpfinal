@@ -57,7 +57,8 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Boolean mAddressRequested = false;
     /** Servicio que permite obtener la direccion acorde a una ubicacion pasada */
     private FetchAddressIntentService buscarCallesService;
-
+    /** Tag usado por el LOG    */
+    private static final String TAG = "ServicioUbicacion";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -187,7 +188,6 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             Log.v("PERMISOS ","No hay permisos para obtener la ubicacion actual");
-            return;
         }
         /** Tengo permisos */
         else{
@@ -230,8 +230,8 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /**
      * Agrega un marcador asociado al estacionamiento de una persona (la ubicacion donde estaciono)
-     * @param estacionamiento
-     * @return
+     * @param estacionamiento objeto que almacena la informacion acerca de donde realizo el estacionamiento el vehiculo
+     * @return marcador que se agrego
      */
     public Marker agregarMarcadorEstacionamiento(UbicacionVehiculoEstacionadoCalle estacionamiento) {
         Marker marker = mapa.addMarker(new MarkerOptions()
@@ -309,6 +309,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
      * Guarda la informacion del lugar de la calle donde estaciono
      */
     private void estacionarEnPosicionActual() {
+        String msg;
         if (mGoogleApiClient.isConnected() && ubicacionActual != null) {
             estCalle = new UbicacionVehiculoEstacionadoCalle(ubicacionActual);
             estCalle.setHoraIngreso(System.currentTimeMillis());
@@ -317,9 +318,13 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             /*
             LatLng latLngActual = new LatLng(ubicacionActual.getLatitude(),ubicacionActual.getLongitude());
             String titulo = String.valueOf(R.string.titMarcadorEstacionamiento);
+
             /** TODO -- Agregar foto del lugar de la calle obteniendolo de google */
            // markerUltimoEstacionamiento = agregarMarcador(latLngActual,titulo,null);
+            /*                                                                     */
             markerUltimoEstacionamiento = agregarMarcadorEstacionamiento(estCalle);
+            msg = String.valueOf(R.string.parkLoggerEstacionamientoCallejeroExitoso);
+            Log.v(TAG,msg);
             persistirUbicacion(estCalle);
         }
         mAddressRequested = true;
@@ -329,37 +334,41 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
      * Guarda el ultimo lugar en donde se realizo el estacionamiento
      */
     private void persistirUbicacion(UbicacionVehiculoEstacionado ubicacionEstacionado){
-
+        String msg = String.valueOf(R.string.parkLoggerInicioPersistiendoUbicacion);
+        Log.v(TAG,msg);
     }
 
     private void actualizarUbicacionPersistida(UbicacionVehiculoEstacionadoCalle estCalle) {
+        String msg = String.valueOf(R.string.parkLoggerInicioActualizacionUbicacion);
+        Log.v(TAG,msg);
     }
 
     /**
      * Recibe una ubicacion y enfoca el mapa en ese punto
      */
     private void enfocarMapaEnUbicacion(Location location){
+        String msg;
         if(location!=null){
-            Log.v("UBICACION ","Ubicacion encontrada, enfocando mapa en coordenadas");
+            msg = String.valueOf(R.string.ubicacionActualEncontrada);
+            Log.v(TAG,msg);
             LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
             CameraPosition position = this.mapa.getCameraPosition();
-
             CameraPosition.Builder builder = new CameraPosition.Builder();
             builder.zoom(15);
             builder.target(target);
-
             this.mapa.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
         }
         else{
-            Log.v("UBICACION ","La ubicacion es nula y no se puede enfocar el mapa");
+            msg = String.valueOf(R.string.ubicacionActualInexistente);
+            Log.v(TAG,msg);
         }
 
     }
 
     /**
      * Metodo que permite recibir el resultado de la busqueda de direccion de calle asincronicamente
-     * @param resultCode
-     * @param resultData
+     * @param resultCode codigo del resultado
+     * @param resultData informacion resultante
      */
     @Override
     public void onReceiveResult(int resultCode, Bundle resultData) {
@@ -375,6 +384,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         /** Si el resultado no es exitoso, espero recibir el mensaje de error en forma de string */
         else{
             errorMessage = resultData.getString(ConstantsAddresses.RESULT_DATA_KEY);
+            Log.v(TAG,errorMessage);
         }
     }
 

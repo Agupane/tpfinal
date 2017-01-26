@@ -1,21 +1,25 @@
 <resources>
     <string name="app_name">tpfinal</string>
-    <string name="action_settings">Settings</string>
-    <string name="action_estacionar">Estacionar aca</string>
     <string name="action_buscar_direccion">Buscar direccion</string>
+    <string name="google_maps_key">AIzaSyCYApmnjmNV1KbYq32RYMlZbb_mTiOYmHA</string>
+    <string name="buscar_reclamos_a_no_mas_de">Buscar reclamos a no mas de(km) </string>
+
+
+    <!-- Strings de interfaz de usuario -->
+    <string name="titMarcadorEstacionamiento">Ubicacion actual del vehiculo</string>
+    <string name="action_estacionar">Estacionar aca</string>
+
+    <!-- Strings del servicio de mapa y ubicacion -->
     <string name="service_not_available">El servicio de busqueda de direcciones no esta disponible actualmente.</string>
     <string name="invalid_lat_long_used">La informacion de ubicacion enviada es incorrecta.</string>
     <string name="no_address_found">No se encontraron direcciones asociadas a esa ubicacion.</string>
     <string name="address_found">La direccion asociada a esa ubicacion se encontro exitosamente.</string>
     <string name="no_geocoder_available">El geocoder no esta disponible actualmente.</string>
-    <string name="google_maps_key">AIzaSyCYApmnjmNV1KbYq32RYMlZbb_mTiOYmHA</string>
-    <string name="buscar_reclamos_a_no_mas_de">Buscar reclamos a no mas de(km) </string>
-
-
-
-    <!-- Strings de interfaz de usuario -->
-    <string name="titMarcadorEstacionamiento">Ubicacion actual del vehiculo</string>
-
+    <string name="ubicacionActualEncontrada">Ubicacion encontrada, enfocando mapa en coordenadas.</string>
+    <string name="ubicacionActualInexistente">La ubicacion es inexistente o nula y no se puede enfocar el mapa.</string>
+    <string name="parkLoggerEstacionamientoCallejeroExitoso">Se realizo un estacionamiento callejero exitoso, marcando el punto en el mapa.</string>
+    <string name="parkLoggerInicioPersistiendoUbicacion">Comenzando persistencia de la ubicacion en donde se realizo el estacionamiento.</string>
+    <string name="parkLoggerInicioActualizacionUbicacion">Comenzando actualizacion de la informacion de ubicacion en donde se realizo el estacionamiento.</string>
                                         <!-- Strings de mensajes de exceptions -->
     <string name="ubicacionVehiculoBuscadoNotFound">La ubicacion de estacionamiento con el id solicitado no pudo ser encontrada.</string>
     <string name="ubicacionVehiculoEliminadoNotFound">La ubicacion de estacionamiento con el id solicitado no pudo ser eliminada.</string>
