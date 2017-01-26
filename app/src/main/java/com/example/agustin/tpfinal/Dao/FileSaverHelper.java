@@ -60,19 +60,25 @@ public class FileSaverHelper {
      * @throws FileSaverException
      */
     public void guardarArchivo(JSONObject objeto, String nombre,Context context) throws FileSaverException{
+        String msg;
         switch(TIPO_ESCRITURA){
             case MEMORIA_EXTERNA:{
                 contexto = context;
+                msg = String.valueOf(R.string.fileSaverInicioEscrituraExterna);
+                Log.v(TAG,msg);
                 guardarArchivoMemoriaExterna(objeto,nombre,Activity.MODE_PRIVATE);
                 break;
             }
             case MEMORIA_INTERNA:{
                 contexto=context;
+                msg = String.valueOf(R.string.fileSaverInicioLecturaInterna);
+                Log.v(TAG,msg);
                 guardarArchivoMemoriaInterna(objeto,nombre,Activity.MODE_PRIVATE);
                 break;
             }
             default:
-                String msg = String.valueOf(R.string.fileSaverErrorEscrituraLocal);
+                msg = String.valueOf(R.string.fileSaverErrorEscrituraLocal);
+                Log.v(TAG,msg);
                 throw new FileSaverException(msg);
         }
     }
@@ -122,19 +128,25 @@ public class FileSaverHelper {
      * @throws FileSaverException
      */
     public void actualizarArchivo(JSONObject objeto, String nombre,Context context) throws FileSaverException{
+        String msg;
         switch(TIPO_ESCRITURA){
             case MEMORIA_EXTERNA:{
                 contexto = context;
+                msg = String.valueOf(R.string.fileSaverInicioLecturaExterna);
+                Log.v(TAG,msg);
                 guardarArchivoMemoriaExterna(objeto,nombre,Activity.MODE_APPEND);
                 break;
             }
             case MEMORIA_INTERNA:{
                 contexto=context;
+                msg = String.valueOf(R.string.fileSaverInicioLecturaInterna);
+                Log.v(TAG,msg);
                 guardarArchivoMemoriaInterna(objeto,nombre,Activity.MODE_APPEND);
                 break;
             }
             default:
-                String msg = String.valueOf(R.string.fileSaverErrorEscrituraLocal);
+                msg = String.valueOf(R.string.fileSaverErrorEscrituraLocal);
+                Log.v(TAG,msg);
                 throw new FileSaverException(msg);
         }
     }
@@ -149,23 +161,30 @@ public class FileSaverHelper {
     public JSONObject getArchivo(String nombre,Context context) throws FileSaverException{
         contexto=context;
         JSONObject objeto = null;
+        String msg;
         switch(TIPO_ESCRITURA){
             case MEMORIA_EXTERNA:{
                 contexto = context;
+                msg = String.valueOf(R.string.fileSaverInicioLecturaExterna);
+                Log.v(TAG,msg);
                 objeto = getArchivoMemoriaExterna(nombre);
                 break;
             }
             case MEMORIA_INTERNA:{
                 contexto=context;
+                msg = String.valueOf(R.string.fileSaverInicioLecturaInterna);
+                Log.v(TAG,msg);
                 objeto = getArchivoMemoriaInterna(nombre);
                 break;
             }
             default:
-                String msg = String.valueOf(R.string.fileSaverErrorLecturaLocal);
+                msg = String.valueOf(R.string.fileSaverErrorLecturaLocal);
+                Log.v(TAG,msg);
                 throw new FileSaverException(msg);
         }
+        return objeto;
     }
-
+    /**TODO Completar metodo*/
     private JSONObject getArchivoMemoriaExterna(String fileName) throws FileSaverException{
         return null;
     }
@@ -189,19 +208,26 @@ public class FileSaverHelper {
             buffer = new byte[size];
             mInput.read(buffer);
             mInput.close();
+            msg = String.valueOf(R.string.fileSaverLecturaExitosa);
+            Log.v(TAG,msg);
             json = new String(buffer,"UTF-8");
             objeto = new JSONObject(json);
+            msg = String.valueOf(R.string.fileSaverCreacionObjetoExitosa);
+            Log.v(TAG,msg);
         }
         catch(FileNotFoundException e){
             msg = String.valueOf(R.string.fileSaverErrorLecturaFileNotFound);
+            Log.v(TAG,msg);
             throw new FileSaverException(msg);
         }
         catch(IOException e){
             msg = String.valueOf(R.string.fileSaverErrorLecturaLocal);
+            Log.v(TAG,msg);
             throw new FileSaverException(msg);
         }
         catch(JSONException e){
             msg = String.valueOf(R.string.fileSaverErrorLecturaObjetoLocal);
+            Log.v(TAG,msg);
             throw new FileSaverException(msg);
         }
         return objeto;
