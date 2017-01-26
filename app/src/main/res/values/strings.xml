@@ -15,4 +15,12 @@
 
     <!-- Strings de interfaz de usuario -->
     <string name="titMarcadorEstacionamiento">Ubicacion actual del vehiculo</string>
+
+                                        <!-- Strings de mensajes de exceptions -->
+    <string name="ubicacionVehiculoBuscadoNotFound">La ubicacion de estacionamiento con el id solicitado no pudo ser encontrada.</string>
+    <string name="ubicacionVehiculoEliminadoNotFound">La ubicacion de estacionamiento con el id solicitado no pudo ser eliminada.</string>
+    <string name="listaUbicacionVehiculosNotFound">No se encontraron vehiculos actualmente estacionados.</string>
+
+    <string name="fileSaverErrorEscrituraLocal">Se produjo un error al procesar la solicitud de guardado.</string>
+    <string name="fileSaverAlmacenExitoso">El archivo fue almacenado en memoria con exito.</string>
 </resources>

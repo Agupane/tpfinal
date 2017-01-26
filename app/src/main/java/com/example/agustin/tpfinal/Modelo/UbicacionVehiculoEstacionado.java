@@ -1,4 +1,4 @@
-package com.example.agustin.tpfinal;
+package com.example.agustin.tpfinal.Modelo;
 
 import android.location.Address;
 import android.location.Location;
@@ -14,6 +14,7 @@ import java.util.Locale;
 public abstract class UbicacionVehiculoEstacionado {
     protected Address direccion;
     protected Long horaIngreso,horaEgreso;
+    protected int id;
     public UbicacionVehiculoEstacionado(Location ubicacion) {
         direccion = new Address(Locale.getDefault());
         direccion.setLongitude(ubicacion.getLongitude());

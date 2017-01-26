@@ -1,4 +1,4 @@
-package com.example.agustin.tpfinal;
+package com.example.agustin.tpfinal.Modelo;
 
 import android.location.Location;
 
