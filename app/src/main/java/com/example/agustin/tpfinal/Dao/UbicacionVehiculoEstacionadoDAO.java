@@ -1,11 +1,19 @@
 package com.example.agustin.tpfinal.Dao;
 
-import android.support.annotation.Nullable;
+import android.app.Application;
+import android.content.Context;
+import android.util.Log;
 
+import com.example.agustin.tpfinal.Exceptions.FileSaverException;
 import com.example.agustin.tpfinal.Exceptions.UbicacionVehiculoException;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
 import com.example.agustin.tpfinal.R;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
+import org.json.JSONObject;
+
+import java.io.File;
 import java.util.List;
 
 /**
@@ -19,6 +27,9 @@ public class UbicacionVehiculoEstacionadoDAO {
     private static final int MODO_PERSISTENCIA_REMOTA = 0; // Los datos se almacenan solamente en la nube
     private static int MODO_PERSISTENCIA_CONFIGURADA = MODO_PERSISTENCIA_MIXTA; // Como default es mixta
     private static boolean usarApiRest = false; // default true
+    private static final FileSaverHelper fileSaver = FileSaverHelper.getInstance(); // Clase que se encarga del almacenamiento local
+    private static final String TAG = "UbicacionVehiculoDAO";
+    private Context context;
   //  private static ProyectoOpenHelper dbHelper = new ProyectoOpenHelper(MyApplication.getAppContext());
   //  private static ProyectoApiRest daoApiRest = new ProyectoApiRest();
    // private static final UsuarioDAO daoUsuario = UsuarioDAO.getInstance();
@@ -32,7 +43,14 @@ public class UbicacionVehiculoEstacionadoDAO {
         return ourInstance;
     }
 
-    public UbicacionVehiculoEstacionado getUbicacionVehiculo(int idUbicacionVehiculo) throws UbicacionVehiculoException {
+    /**
+     * Retorna el objeto ubicacion vehiculo estacionado con el id parametro
+     * @param idUbicacionVehiculo
+     * @return
+     * @throws UbicacionVehiculoException
+     */
+    public UbicacionVehiculoEstacionado getUbicacionVehiculo(int idUbicacionVehiculo,Context context) throws UbicacionVehiculoException {
+        this.context = context;
         UbicacionVehiculoEstacionado nuevaUbicacion = null;
         try {
             /** TODO modificar y poner un switch como el de borrado */
@@ -72,7 +90,13 @@ public class UbicacionVehiculoEstacionadoDAO {
         return nuevaUbicacion;
     }
 
-    public void borrarUbicacionVehiculo(int idUbicacionVehiculo) throws UbicacionVehiculoException {
+    /**
+     * Borra el vehiculo estacionado
+     * @param idUbicacionVehiculo
+     * @throws UbicacionVehiculoException
+     */
+    public void borrarUbicacionVehiculo(int idUbicacionVehiculo,Context context) throws UbicacionVehiculoException {
+        this.context = context;
         switch(MODO_PERSISTENCIA_CONFIGURADA){
             case MODO_PERSISTENCIA_LOCAL:{
                 borrarUbicacionVehiculoLocal(idUbicacionVehiculo);
@@ -112,7 +136,8 @@ public class UbicacionVehiculoEstacionadoDAO {
      * @param ubicacionVehiculo
      * @throws UbicacionVehiculoException
      */
-    public void actualizarUbicacionVehiculoEstacionado(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
+    public void actualizarUbicacionVehiculoEstacionado(UbicacionVehiculoEstacionado ubicacionVehiculo,Context context) throws UbicacionVehiculoException {
+        this.context = context;
         switch(MODO_PERSISTENCIA_CONFIGURADA){
             case MODO_PERSISTENCIA_LOCAL:{
                 actualizarUbicacionVehiculoLocal(ubicacionVehiculo);
@@ -160,52 +185,55 @@ public class UbicacionVehiculoEstacionadoDAO {
     private void actualizarUbicacionVehiculoRemoto(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
     //    daoApiRest.actualizarTarea(t);
     }
-    public void nuevaUbicacionVehiculo(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
+
+    /**
+     * Persiste una ubicacion vehiculo nueva
+     * @param ubicacionVehiculo
+     * @throws UbicacionVehiculoException
+     */
+    public void guardarOActualizarUbicacionVehiculo(UbicacionVehiculoEstacionado ubicacionVehiculo, Context context) throws UbicacionVehiculoException {
+        this.context = context;
         switch(MODO_PERSISTENCIA_CONFIGURADA){
             case MODO_PERSISTENCIA_LOCAL:{
-                nuevaUbicacionVehiculoLocal(ubicacionVehiculo);
+                guardarUbicacionVehiculoLocal(ubicacionVehiculo);
                 break;
             }
             case MODO_PERSISTENCIA_REMOTA:{
-                nuevaUbicacionVehiculoRemoto(ubicacionVehiculo);
+                guardarUbicacionVehiculoRemoto(ubicacionVehiculo);
                 break;
             }
             case MODO_PERSISTENCIA_MIXTA:{
-                nuevaUbicacionVehiculoLocal(ubicacionVehiculo);
-                nuevaUbicacionVehiculoRemoto(ubicacionVehiculo);
+                guardarUbicacionVehiculoLocal(ubicacionVehiculo);
+                guardarUbicacionVehiculoRemoto(ubicacionVehiculo);
                 break;
             }
         }
     }
 
-    private void nuevaUbicacionVehiculoLocal(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
-        /*
-        try{
-            ContentValues datosAGuardar = new ContentValues();
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.HORAS_PLANIFICADAS, t.getHorasEstimadas());
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.MINUTOS_TRABAJADOS, 0);
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.TAREA, t.getDescripcion());
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.PRIORIDAD, t.getPrioridad().getId());
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.RESPONSABLE, t.getResponsable().getId());
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.PROYECTO, t.getProyecto().getId());
-            open(true);
-            db.insert(ProyectoDBMetadata.TABLA_TAREAS, null, datosAGuardar);
+    private void guardarUbicacionVehiculoLocal(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
+        Gson gson = new Gson();
+        String json = gson.toJson(ubicacionVehiculo);
+        fileSaver.usarEscrituraInterna(true);
+        try {
+            fileSaver.guardarOActualizarArchivo(json,"ubicacionVehiculo.json", context);
         }
-        catch(Exception e){
-            throw new TareaException("La tarea no pudo ser creada");
+        catch (FileSaverException e) {
+            e.printStackTrace();
         }
-        */
     }
 
-    private void nuevaUbicacionVehiculoRemoto(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
+    private void guardarUbicacionVehiculoRemoto(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
        // daoApiRest.guardarTarea(t);
     }
 
     /**
      * Devuelve una lista con todas las ubicaciones de los vehiculos estacionados
+     * del usuario id
+     * @param idUsuario id del usuario al que se desea listar sus ubicaciones
      * @return
      */
-    public List listarUbicacionVehiculoEstacionado() throws UbicacionVehiculoException {
+    public List listarUbicacionVehiculoEstacionado(Integer idUsuario,Context context) throws UbicacionVehiculoException {
+        this.context = context;
       //  Cursor cursorTareas=null;
         try{
             if(usarApiRest){
@@ -235,6 +263,34 @@ public class UbicacionVehiculoEstacionadoDAO {
             throw new UbicacionVehiculoException(msg);
         }
      //   return cursorTareas;
+        return null;
+    }
+
+    public UbicacionVehiculoEstacionado getUltimaUbicacionVehiculo(Integer idUsuario,Context context){
+        this.context = context;
+        String msg,jsonStr;
+        JSONObject ubicacionVehiculo;
+        JsonElement element;
+        Gson gson;
+        try {
+            if(context==null){
+                System.out.println("AAAAAAAAAAAAAAA");
+            }
+            ubicacionVehiculo = fileSaver.getArchivo("ubicacionVehiculo.json",context);
+            gson = new Gson();
+            /** TODO ACA ROMPE, HAY QUE ARREGLAR */
+            return gson.fromJson(ubicacionVehiculo.toString(),UbicacionVehiculoEstacionado.class);
+            /*
+            jsonStr = gson.
+            element = gson.fromJson (jsonStr, JsonElement.class);
+            JsonObject jsonObj = element.getAsJsonObject();
+            */
+
+        }
+        catch (FileSaverException e) {
+            msg = e.getMessage();
+            Log.v(TAG,msg);
+        }
         return null;
     }
 }

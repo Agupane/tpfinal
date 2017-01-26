@@ -20,7 +20,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
+import com.example.agustin.tpfinal.Dao.UbicacionVehiculoEstacionadoDAO;
+import com.example.agustin.tpfinal.Exceptions.UbicacionVehiculoException;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionadoCalle;
 import com.google.android.gms.common.ConnectionResult;
@@ -35,6 +38,8 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.ArrayList;
 
 public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver {
     /** Mapa de google a mostrar */
@@ -59,6 +64,8 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private FetchAddressIntentService buscarCallesService;
     /** Tag usado por el LOG    */
     private static final String TAG = "ServicioUbicacion";
+    /** Dao que almacena ubicacion de vehiculos estacionados */
+    private static final UbicacionVehiculoEstacionadoDAO ubicacionVehiculoDAO = UbicacionVehiculoEstacionadoDAO.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,6 +142,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapa.setOnInfoWindowClickListener(this);
         mapa.setInfoWindowAdapter(ventanaInfo);
         enfocarMapaEnUbicacion(ubicacionActual);
+        cargarUltimoEstacionamiento(1);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -198,7 +206,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             if (ubicacionActual != null) {
                 // Determine whether a Geocoder is available.
                 if (!Geocoder.isPresent()) {
-                    Log.v("LOCALIZADOR", String.valueOf(R.string.no_geocoder_available));
+                    Log.v("LOCALIZADOR", getResources().getString(R.string.no_geocoder_available));
                 }
                 if (mAddressRequested) {
                     startAddressFetchService();
@@ -233,7 +241,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
      * @param estacionamiento objeto que almacena la informacion acerca de donde realizo el estacionamiento el vehiculo
      * @return marcador que se agrego
      */
-    public Marker agregarMarcadorEstacionamiento(UbicacionVehiculoEstacionadoCalle estacionamiento) {
+    public Marker agregarMarcadorEstacionamiento(UbicacionVehiculoEstacionado estacionamiento) {
         Marker marker = mapa.addMarker(new MarkerOptions()
                 .position(estacionamiento.getCoordenadas())
                 .title(estacionamiento.getTitulo()));
@@ -317,13 +325,13 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             mAddressRequested = false;
             /*
             LatLng latLngActual = new LatLng(ubicacionActual.getLatitude(),ubicacionActual.getLongitude());
-            String titulo = String.valueOf(R.string.titMarcadorEstacionamiento);
+            String titulo = getResources().getString(R.string.titMarcadorEstacionamiento);
 
             /** TODO -- Agregar foto del lugar de la calle obteniendolo de google */
            // markerUltimoEstacionamiento = agregarMarcador(latLngActual,titulo,null);
             /*                                                                     */
             markerUltimoEstacionamiento = agregarMarcadorEstacionamiento(estCalle);
-            msg = String.valueOf(R.string.parkLoggerEstacionamientoCallejeroExitoso);
+            msg = getResources().getString(R.string.parkLoggerEstacionamientoCallejeroExitoso);
             Log.v(TAG,msg);
             persistirUbicacion(estCalle);
         }
@@ -334,12 +342,18 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
      * Guarda el ultimo lugar en donde se realizo el estacionamiento
      */
     private void persistirUbicacion(UbicacionVehiculoEstacionado ubicacionEstacionado){
-        String msg = String.valueOf(R.string.parkLoggerInicioPersistiendoUbicacion);
+        String msg = getResources().getString(R.string.parkLoggerInicioPersistiendoUbicacion);
         Log.v(TAG,msg);
+        try {
+            ubicacionVehiculoDAO.guardarOActualizarUbicacionVehiculo(ubicacionEstacionado,this);
+        }
+        catch (UbicacionVehiculoException e) {
+            Toast.makeText(this,"Error producido",Toast.LENGTH_SHORT);
+        }
     }
 
     private void actualizarUbicacionPersistida(UbicacionVehiculoEstacionadoCalle estCalle) {
-        String msg = String.valueOf(R.string.parkLoggerInicioActualizacionUbicacion);
+        String msg = getResources().getString(R.string.parkLoggerInicioActualizacionUbicacion);
         Log.v(TAG,msg);
     }
 
@@ -349,7 +363,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void enfocarMapaEnUbicacion(Location location){
         String msg;
         if(location!=null){
-            msg = String.valueOf(R.string.ubicacionActualEncontrada);
+            msg = getResources().getString(R.string.ubicacionActualEncontrada);
             Log.v(TAG,msg);
             LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
             CameraPosition position = this.mapa.getCameraPosition();
@@ -359,7 +373,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             this.mapa.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
         }
         else{
-            msg = String.valueOf(R.string.ubicacionActualInexistente);
+            msg = getResources().getString(R.string.ubicacionActualInexistente);
             Log.v(TAG,msg);
         }
 
@@ -388,4 +402,11 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
+    /** Permite cargar el ultimo estacionamiento en el mapa del usuario */
+    public void cargarUltimoEstacionamiento(int idUsuario){
+        UbicacionVehiculoEstacionado ultimoEst = ubicacionVehiculoDAO.getUltimaUbicacionVehiculo(idUsuario,this);
+        if(ultimoEst !=null) {
+            agregarMarcadorEstacionamiento(ultimoEst);
+        }
+    }
 }
