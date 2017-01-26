@@ -11,8 +11,10 @@ import android.util.Log;
 import com.example.agustin.tpfinal.Exceptions.FileSaverException;
 import com.example.agustin.tpfinal.R;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -51,6 +53,7 @@ public class FileSaverHelper {
 
     /**
      * Recibe un objeto JSON y lo almacena en disco interno o externo segun lo configurado default
+     * Si el objeto ya existia, lo remplaza
      * @param objeto objeto JSON a almacenar
      * @param nombre nombre que se le quiere asignar al archivo
      * @param context contexto desde donde se llama a guardar el archivo (necesario para guardar)
@@ -60,12 +63,12 @@ public class FileSaverHelper {
         switch(TIPO_ESCRITURA){
             case MEMORIA_EXTERNA:{
                 contexto = context;
-                guardarArchivoMemoriaExterna(objeto,nombre);
+                guardarArchivoMemoriaExterna(objeto,nombre,Activity.MODE_PRIVATE);
                 break;
             }
             case MEMORIA_INTERNA:{
                 contexto=context;
-                guardarArchivoMemoriaInterna(objeto,nombre);
+                guardarArchivoMemoriaInterna(objeto,nombre,Activity.MODE_PRIVATE);
                 break;
             }
             default:
@@ -75,22 +78,23 @@ public class FileSaverHelper {
     }
 
     /**TODO implementar metodo */
-    private void guardarArchivoMemoriaExterna(JSONObject objeto, String nombre) throws FileSaverException{
+    private void guardarArchivoMemoriaExterna(JSONObject objeto, String nombre,int modoGuardado) throws FileSaverException{
 
     }
 
     /**
      * Recibe un objeto JSON y lo almacena en memoria interna
      * @param objeto
+     * @param fileName nombre del archivo
+     * @param modoGuardado indica si el modo de escritura agrega al final o remplaza por un nuevo archivo
      * @throws FileSaverException
      */
-    private void guardarArchivoMemoriaInterna(JSONObject objeto,String nombre) throws FileSaverException{
+    private void guardarArchivoMemoriaInterna(JSONObject objeto,String fileName,int modoGuardado) throws FileSaverException{
         String msg = String.valueOf(R.string.fileSaverErrorEscrituraLocal);
-        String fileName=nombre;
         FileOutputStream mOutput;
         if(objeto!=null) {
             try {
-                mOutput = contexto.openFileOutput(fileName+".json", Activity.MODE_PRIVATE);
+                mOutput = contexto.openFileOutput(fileName, modoGuardado);
                 mOutput.write(objeto.toString().getBytes());
                 mOutput.flush();
                 mOutput.close();
@@ -107,5 +111,99 @@ public class FileSaverHelper {
         else{
             throw new FileSaverException(msg);
         }
+    }
+
+    /**
+     * Recibe un objeto JSON y lo almacena en disco interno o externo segun lo configurado default
+     * Si el objeto ya existia, lo actualiza
+     * @param objeto objeto JSON a almacenar
+     * @param nombre nombre que se le quiere asignar al archivo
+     * @param context contexto desde donde se llama a guardar el archivo (necesario para guardar)
+     * @throws FileSaverException
+     */
+    public void actualizarArchivo(JSONObject objeto, String nombre,Context context) throws FileSaverException{
+        switch(TIPO_ESCRITURA){
+            case MEMORIA_EXTERNA:{
+                contexto = context;
+                guardarArchivoMemoriaExterna(objeto,nombre,Activity.MODE_APPEND);
+                break;
+            }
+            case MEMORIA_INTERNA:{
+                contexto=context;
+                guardarArchivoMemoriaInterna(objeto,nombre,Activity.MODE_APPEND);
+                break;
+            }
+            default:
+                String msg = String.valueOf(R.string.fileSaverErrorEscrituraLocal);
+                throw new FileSaverException(msg);
+        }
+    }
+
+    /**
+     * Recibe el nombre del objeto JSON a obtener y lo devuelve
+     * Si no lo encuentra lanza una exception
+     * @param nombre
+     * @param context
+     * @throws FileSaverException
+     */
+    public JSONObject getArchivo(String nombre,Context context) throws FileSaverException{
+        contexto=context;
+        JSONObject objeto = null;
+        switch(TIPO_ESCRITURA){
+            case MEMORIA_EXTERNA:{
+                contexto = context;
+                objeto = getArchivoMemoriaExterna(nombre);
+                break;
+            }
+            case MEMORIA_INTERNA:{
+                contexto=context;
+                objeto = getArchivoMemoriaInterna(nombre);
+                break;
+            }
+            default:
+                String msg = String.valueOf(R.string.fileSaverErrorLecturaLocal);
+                throw new FileSaverException(msg);
+        }
+    }
+
+    private JSONObject getArchivoMemoriaExterna(String fileName) throws FileSaverException{
+        return null;
+    }
+
+    /**
+     * Recibe el nombre de un archivo JSON y lo retorna.
+     * Si el objeto no se encuentra lanza una exception
+     * @param fileName
+     * @return
+     * @throws FileSaverException
+     */
+    private JSONObject getArchivoMemoriaInterna(String fileName) throws FileSaverException{
+        int size;
+        byte[] buffer;
+        FileInputStream mInput;
+        String json,msg;
+        JSONObject objeto;
+        try{
+            mInput = contexto.openFileInput(fileName);
+            size = mInput.available();
+            buffer = new byte[size];
+            mInput.read(buffer);
+            mInput.close();
+            json = new String(buffer,"UTF-8");
+            objeto = new JSONObject(json);
+        }
+        catch(FileNotFoundException e){
+            msg = String.valueOf(R.string.fileSaverErrorLecturaFileNotFound);
+            throw new FileSaverException(msg);
+        }
+        catch(IOException e){
+            msg = String.valueOf(R.string.fileSaverErrorLecturaLocal);
+            throw new FileSaverException(msg);
+        }
+        catch(JSONException e){
+            msg = String.valueOf(R.string.fileSaverErrorLecturaObjetoLocal);
+            throw new FileSaverException(msg);
+        }
+        return objeto;
     }
 }

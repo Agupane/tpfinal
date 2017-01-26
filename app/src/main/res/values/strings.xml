@@ -22,5 +22,8 @@
     <string name="listaUbicacionVehiculosNotFound">No se encontraron vehiculos actualmente estacionados.</string>
 
     <string name="fileSaverErrorEscrituraLocal">Se produjo un error al procesar la solicitud de guardado.</string>
+    <string name="fileSaverErrorLecturaLocal">Se produjo un error al procesar la solicitud de lectura.</string>
+    <string name="fileSaverErrorLecturaObjetoLocal">Se produjo un error al leer el objeto solicitado.</string>
+    <string name="fileSaverErrorLecturaFileNotFound">El archivo solicitado no se encontro.</string>
     <string name="fileSaverAlmacenExitoso">El archivo fue almacenado en memoria con exito.</string>
 </resources>
