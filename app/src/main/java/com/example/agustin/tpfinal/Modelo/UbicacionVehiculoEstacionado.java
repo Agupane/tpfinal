@@ -21,7 +21,7 @@ public abstract class UbicacionVehiculoEstacionado {
         direccion.setLatitude(ubicacion.getLatitude());
 
     }
-
+    public UbicacionVehiculoEstacionado(){}
     public Address getDireccion() {
         return direccion;
     }
@@ -55,6 +55,13 @@ public abstract class UbicacionVehiculoEstacionado {
         this.horaIngreso = horaIngreso;
     }
 
+    public int getId(){
+        return this.id;
+    }
+    public void setId(int id){
+        this.id=id;
+    }
+
     /** Devuelve el tiempo en minutos que el vehiculo estuvo en el estacionamiento
      * Si el vehiculo aun sigue estacionado devuelve -1
      */
@@ -77,14 +84,16 @@ public abstract class UbicacionVehiculoEstacionado {
      */
     public String getTitulo(){
         StringBuilder titulo = new StringBuilder();
-        titulo.append(direccion.getAddressLine(0));
-        titulo.append(", ");
-        titulo.append(direccion.getLocality());
-        if(titulo.length()>0) {
-            return titulo.toString();
-        }
-        if(direccion != null){
-            return direccion.getLatitude()+" "+direccion.getLongitude();
+        if(direccion!=null) {
+            titulo.append(direccion.getAddressLine(0));
+            titulo.append(", ");
+            titulo.append(direccion.getLocality());
+            if (titulo.length()>10) { // Si es >10 entonces el titulo contiene informacion, de lo contrario tiene punteros nulos o info vacia
+                return titulo.toString();
+            }
+            else{
+                return direccion.getLatitude() + " " + direccion.getLongitude();
+            }
         }
         return "Vehiculo";
     }

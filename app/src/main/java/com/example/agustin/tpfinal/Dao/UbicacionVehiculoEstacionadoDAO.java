@@ -7,8 +7,10 @@ import android.util.Log;
 import com.example.agustin.tpfinal.Exceptions.FileSaverException;
 import com.example.agustin.tpfinal.Exceptions.UbicacionVehiculoException;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
+import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionadoCalle;
 import com.example.agustin.tpfinal.R;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 
 import org.json.JSONObject;
@@ -269,23 +271,14 @@ public class UbicacionVehiculoEstacionadoDAO {
     public UbicacionVehiculoEstacionado getUltimaUbicacionVehiculo(Integer idUsuario,Context context){
         this.context = context;
         String msg,jsonStr;
-        JSONObject ubicacionVehiculo;
-        JsonElement element;
+        String ubicacionVehiculo;
+        UbicacionVehiculoEstacionado ubVehiculo;
         Gson gson;
         try {
-            if(context==null){
-                System.out.println("AAAAAAAAAAAAAAA");
-            }
             ubicacionVehiculo = fileSaver.getArchivo("ubicacionVehiculo.json",context);
             gson = new Gson();
-            /** TODO ACA ROMPE, HAY QUE ARREGLAR */
-            return gson.fromJson(ubicacionVehiculo.toString(),UbicacionVehiculoEstacionado.class);
-            /*
-            jsonStr = gson.
-            element = gson.fromJson (jsonStr, JsonElement.class);
-            JsonObject jsonObj = element.getAsJsonObject();
-            */
-
+            /** TODO - CAMBIAR LO QUE DICE ESTACINOADO CALLE, TIENE QUE SER GENERICO PARA LOS DOS TIPOS DE ESTACIONAMIENTO*/
+            ubVehiculo = gson.fromJson(ubicacionVehiculo,UbicacionVehiculoEstacionadoCalle.class);
         }
         catch (FileSaverException e) {
             msg = e.getMessage();

@@ -77,8 +77,7 @@ public class FileSaverHelper {
                 break;
             }
             default:
-                msg = contexto.getResources().getString(R.string.fileSaverErrorEscrituraLocal);
-                Log.v(TAG,msg);
+                msg = context.getResources().getString(R.string.fileSaverErrorEscrituraLocal);
                 throw new FileSaverException(msg);
         }
     }
@@ -158,9 +157,10 @@ public class FileSaverHelper {
      * @param context
      * @throws FileSaverException
      */
-    public JSONObject getArchivo(String nombre,Context context) throws FileSaverException{
+    public String getArchivo(String nombre,Context context) throws FileSaverException{
         contexto=context;
         JSONObject objeto = null;
+        String objet = null;
         String msg;
         switch(TIPO_ESCRITURA){
             case MEMORIA_EXTERNA:{
@@ -174,7 +174,7 @@ public class FileSaverHelper {
                 contexto=context;
                 msg = contexto.getResources().getString(R.string.fileSaverInicioLecturaInterna);
                 Log.v(TAG,msg);
-                objeto = getArchivoMemoriaInterna(nombre);
+                objet = getArchivoMemoriaInterna(nombre);
                 break;
             }
             default:
@@ -182,7 +182,7 @@ public class FileSaverHelper {
                 Log.v(TAG,msg);
                 throw new FileSaverException(msg);
         }
-        return objeto;
+        return objet;
     }
     /**TODO Completar metodo*/
     private JSONObject getArchivoMemoriaExterna(String fileName) throws FileSaverException{
@@ -196,7 +196,7 @@ public class FileSaverHelper {
      * @return
      * @throws FileSaverException
      */
-    private JSONObject getArchivoMemoriaInterna(String fileName) throws FileSaverException{
+    private String getArchivoMemoriaInterna(String fileName) throws FileSaverException{
         int size;
         byte[] buffer;
         FileInputStream mInput;
@@ -211,9 +211,12 @@ public class FileSaverHelper {
             msg = contexto.getResources().getString(R.string.fileSaverLecturaExitosa);
             Log.v(TAG,msg);
             json = new String(buffer,"UTF-8");
+            return json;
+            /*
             objeto = new JSONObject(json);
             msg = contexto.getResources().getString(R.string.fileSaverCreacionObjetoExitosa);
             Log.v(TAG,msg);
+            */
         }
         catch(FileNotFoundException e){
             msg = contexto.getResources().getString(R.string.fileSaverErrorLecturaFileNotFound);
@@ -225,11 +228,13 @@ public class FileSaverHelper {
             Log.v(TAG,msg);
             throw new FileSaverException(msg);
         }
+        /*
         catch(JSONException e){
             msg = contexto.getResources().getString(R.string.fileSaverErrorLecturaObjetoLocal);
             Log.v(TAG,msg);
             throw new FileSaverException(msg);
         }
-        return objeto;
+        */
+        //return objeto;
     }
 }
