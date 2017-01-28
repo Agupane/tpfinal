@@ -13,12 +13,14 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,47 +98,6 @@ public class UbicacionVehiculoEstacionadoDAO {
     }
 
     /**
-     * Borra el vehiculo estacionado
-     * @param idUbicacionVehiculo
-     * @throws UbicacionVehiculoException
-     */
-    public void borrarUbicacionVehiculo(int idUbicacionVehiculo,Context context) throws UbicacionVehiculoException {
-        this.context = context;
-        switch(MODO_PERSISTENCIA_CONFIGURADA){
-            case MODO_PERSISTENCIA_LOCAL:{
-                borrarUbicacionVehiculoLocal(idUbicacionVehiculo);
-                break;
-            }
-            case MODO_PERSISTENCIA_REMOTA:{
-                borrarUbicacionVehiculoRemoto(idUbicacionVehiculo);
-                break;
-            }
-            case MODO_PERSISTENCIA_MIXTA:{
-                borrarUbicacionVehiculoLocal(idUbicacionVehiculo);
-                borrarUbicacionVehiculoRemoto(idUbicacionVehiculo);
-                break;
-            }
-        }
-    }
-    private void borrarUbicacionVehiculoLocal(int idUbicacionVehiculo) throws UbicacionVehiculoException {
-        try {
-            /*
-            String[] args = {String.valueOf(idTarea)};
-            open(true);
-            db.delete(ProyectoDBMetadata.TABLA_TAREAS, "_id=?", args);
-            */
-        }
-        catch(Exception e){
-            String msg = String.valueOf(R.string.ubicacionVehiculoEliminadoNotFound);
-            throw new UbicacionVehiculoException("La tarea no pudo ser eliminada");
-        }
-    }
-
-    private void borrarUbicacionVehiculoRemoto(int idUbicacionVehiculo) throws UbicacionVehiculoException {
-       // daoApiRest.borrarUbicacionVehiculo(idUbicacionVehiculo);
-    }
-
-    /**
      * Actualiza la informacion del objeto ubicacionVehiculoEstacionado pasado en la base de datos
      * @param ubicacionVehiculo
      * @throws UbicacionVehiculoException
@@ -165,13 +126,10 @@ public class UbicacionVehiculoEstacionadoDAO {
      * @throws UbicacionVehiculoException
      */
     private void actualizarUbicacionVehiculoLocal(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException{
-        String jsonStringVehiculo = gson.toJson(ubicacionVehiculo);
-        JSONObject vehiculo = new JSONObject();
-        JSONObject baseDeDatos = new JSONObject();
+        JSONObject baseDeDatos;
         String jsonStringBaseDeDatos;
         String msg;
         try {
-            vehiculo = new JSONObject(jsonStringVehiculo);
             jsonStringBaseDeDatos = fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context);
             baseDeDatos = new JSONObject(jsonStringBaseDeDatos);
             /** TODO Esto hay que cambiarlo a futuro en el caso de que hagamos herencia con los tipos de estacionamientos */
@@ -264,8 +222,8 @@ public class UbicacionVehiculoEstacionadoDAO {
 
     private void guardarUbicacionVehiculoLocal(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
         String jsonStringVehiculo = gson.toJson(ubicacionVehiculo);
-        JSONObject vehiculo = new JSONObject();
-        JSONObject baseDeDatos = new JSONObject();
+        JSONObject vehiculo;
+        JSONObject baseDeDatos;
         String jsonStringBaseDeDatos;
         String msg;
         try {
@@ -294,78 +252,88 @@ public class UbicacionVehiculoEstacionadoDAO {
 
     /**
      * Devuelve una lista con todas las ubicaciones de los vehiculos estacionados
-     * del usuario id
+     * del usuario id, de lo contrario retorna null
      * @param idUsuario id del usuario al que se desea listar sus ubicaciones
      * @return
      */
-    public List listarUbicacionVehiculoEstacionado(Integer idUsuario,Context context) throws UbicacionVehiculoException {
+    public ArrayList<UbicacionVehiculoEstacionado> listarUbicacionVehiculoEstacionado(Integer idUsuario,Context context) throws UbicacionVehiculoException {
         this.context = context;
-      //  Cursor cursorTareas=null;
+        String msg;
+        JSONObject baseDeDatos;
+        JSONArray listaEstacionamientos;
+        ArrayList<UbicacionVehiculoEstacionado> listado = null;
+        JSONObject iterador;
+        UbicacionVehiculoEstacionado iteradorObject;
         try{
-            if(usarApiRest){
-             //   cursorTareas=daoApiRest.listarUbicacionVehiculoEstacionado();
-              //  cursorTareas.moveToFirst();
-            }
-            else {
-                /*
-                cursorTareas = db.rawQuery("SELECT " + ProyectoDBMetadata.TablaProyectoMetadata._ID + " FROM " + ProyectoDBMetadata.TABLA_PROYECTO, null);
-                //  Integer idPry= 0;
-                Integer idPry = idProyecto;
-                /*
-                if(cursorPry.moveToFirst()){
-                    idPry=cursorPry.getInt(0);
+            baseDeDatos = new JSONObject(fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context));
+            listaEstacionamientos = baseDeDatos.getJSONArray("estacionamientosCalle");
+            listado = new ArrayList<UbicacionVehiculoEstacionado>();
+            for(int i = 0; i<listaEstacionamientos.length();i++){
+                iterador = ((JSONObject) listaEstacionamientos.get(i));
+                if( iterador.get("idUsuario") == idUsuario ){ // Compruebo que se corresponda el usuario
+                    iteradorObject = gson.fromJson(iterador.toString(),UbicacionVehiculoEstacionado.class);
+                    listado.add(iteradorObject);
                 }
-                */
-                /*
-                Cursor cursor = null;
-                Log.d("Listar Tareas", "PROYECTO ID: " + idPry.toString() + " - " + _SQL_TAREAS_X_PROYECTO);
-                cursor = db.rawQuery(_SQL_TAREAS_X_PROYECTO, new String[]{idPry.toString()});
-                return cursor;
-                */
             }
+            msg = context.getResources().getString(R.string.listaUbicacionVehiculosEncontradaExitosamente);
+            Log.v(TAG,msg);
         }
-        catch(Exception e){
-            String msg = String.valueOf(R.string.listaUbicacionVehiculosNotFound);
-            throw new UbicacionVehiculoException(msg);
+        catch(FileSaverException e){
+            msg = context.getResources().getString(R.string.listaUbicacionVehiculosErrorLectura);
+            Log.v(TAG,msg);
         }
-     //   return cursorTareas;
-        return null;
+        catch(JSONException e){
+            msg = context.getResources().getString(R.string.listaUbicacionVehiculosNotFound);
+            Log.v(TAG,msg);
+        }
+        return listado;
     }
 
     /**
      * Devuelve la ultima ubicacion en donde el usuario idUsuario estaciono el vehiculo
+     * Si no hay ubicaciones registradas del usuario retorna null
      * @param idUsuario
      * @param context
      * @return
      */
-    /** TODO - TERMINAR */
+    /** TODO - Comprobar que devuelve realmente la ultima ubicacion */
     public UbicacionVehiculoEstacionado getUltimaUbicacionVehiculo(Integer idUsuario,Context context){
         this.context = context;
-        String msg,jsonString;
-        UbicacionVehiculoEstacionado ubVehiculo = null;
+        String msg;
+        JSONObject baseDeDatos;
+        JSONArray listaEstacionamientos;
+        JSONObject iterador;
+        UbicacionVehiculoEstacionado iteradorObject = null;
         try {
-            jsonString = fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context);
-            try {
-                JSONObject jOb = new JSONObject(jsonString);
-//                System.out.println(jOb.getJSONObject("idUsuario:0"));
-               // System.out.println("String: "+jsonString);
-               // System.out.println(jOb);
-    //            System.out.println(jOb.getJSONObject("idUsuario:0"));
+            baseDeDatos = new JSONObject(fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context));
+            listaEstacionamientos = baseDeDatos.getJSONArray("estacionamientosCalle");
+            for(int i = listaEstacionamientos.length()-1; i>=0;i--){ // Como el file esta ordenado con los ultimos elementos al final, arranco por atras
+                iterador = ((JSONObject) listaEstacionamientos.get(i));
+                if( iterador.get("idUsuario") == idUsuario ){ // Compruebo que se corresponda el usuario
+                    iteradorObject = gson.fromJson(iterador.toString(),UbicacionVehiculoEstacionado.class);
+                    msg = context.getResources().getString(R.string.ubicacionVehiculoBuscadoFound);
+                    Log.v(TAG,msg);
+                    return iteradorObject;
+                }
             }
-            catch(Exception e){
-                e.printStackTrace();
-            }
-
+            msg = context.getResources().getString(R.string.listaUbicacionVehiculosNotFound);
+            Log.v(TAG,msg);
         }
         catch (FileSaverException e) {
+            e.printStackTrace();
             msg = e.getMessage();
             Log.v(TAG,msg);
         }
-        return ubVehiculo;
+        catch(JSONException e){
+            e.printStackTrace();
+            msg = context.getResources().getString(R.string.listaUbicacionVehiculosNotFound);
+            Log.v(TAG,msg);
+        }
+        return iteradorObject;
     }
 
     /**
-     * Borra el objeto de la base de datos
+     * Borra el objeto de la base de datos de manera LOGICA, no hay implementacion FISICA
      * @param ubicacionVehiculo
      * @throws UbicacionVehiculoException
      */

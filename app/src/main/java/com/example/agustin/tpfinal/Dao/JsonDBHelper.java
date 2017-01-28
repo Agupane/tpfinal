@@ -49,16 +49,7 @@ public class JsonDBHelper {
         String fileName = UBICACION_VEHICULO_FILENAME;
         JSONArray jsonArray = new JSONArray();
         JSONObject jsonObject = new JSONObject();
-        JSONObject vehiculoCalle = new JSONObject();
-        /*
-        UbicacionVehiculoEstacionado vehiculo = new UbicacionVehiculoEstacionado();
-        Gson gson = new Gson();
-        String vehiculoStr = gson.toJson(vehiculo);
-        System.out.println("vehiculo: "+vehiculoStr);
-        */
         try {
-            /* VER COMO CREA EL JSON DE VEHICULO Y SINO VER COMO HACER PARA QUE LO CRE CON VALORES NULOS */
-            //jsonArray.put()
             jsonObject.put("estacionamientosCalle", jsonArray);
             createJSONDB(jsonObject.toString(),fileName);
             msg = contexto.getResources().getString(R.string.jsonDbHelperBDInstanciadaExitosamente);

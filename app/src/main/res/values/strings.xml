@@ -21,9 +21,12 @@
     <string name="parkLoggerInicioPersistiendoUbicacion">Comenzando persistencia de la ubicacion en donde se realizo el estacionamiento.</string>
     <string name="parkLoggerInicioActualizacionUbicacion">Comenzando actualizacion de la informacion de ubicacion en donde se realizo el estacionamiento.</string>
                                         <!-- Strings de mensajes de exceptions -->
+    <string name="ubicacionVehiculoBuscadoFound">La ubicacion de estacionamiento con el id solicitada se encontro exitosamente.</string>
     <string name="ubicacionVehiculoBuscadoNotFound">La ubicacion de estacionamiento con el id solicitado no pudo ser encontrada.</string>
     <string name="ubicacionVehiculoEliminadoNotFound">La ubicacion de estacionamiento con el id solicitado no pudo ser eliminada.</string>
     <string name="listaUbicacionVehiculosNotFound">No se encontraron vehiculos actualmente estacionados.</string>
+    <string name="listaUbicacionVehiculosEncontradaExitosamente">Se recupero exitosamente la lista de vehiculos estacionados.</string>
+    <string name="listaUbicacionVehiculosErrorLectura">Se produjo un error en la busqueda de la lista de los vehiculos estacionados.</string>
 
     <string name="fileSaverInicioEscrituraExterna">Se esta comenzando a guardar un objeto en memoria externa.</string>
     <string name="fileSaverInicioEscrituraInterna">Se esta comenzando a guardar un objeto en memoria interna.</string>

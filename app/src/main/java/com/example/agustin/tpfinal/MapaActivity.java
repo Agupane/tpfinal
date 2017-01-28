@@ -68,6 +68,8 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final UbicacionVehiculoEstacionadoDAO ubicacionVehiculoDAO = UbicacionVehiculoEstacionadoDAO.getInstance();
     /** Helper que administra la base de datos JSON LOCAL */
     private final JsonDBHelper jsonDbHelper = JsonDBHelper.getInstance();
+    /** Representa el id del usuario que esta utilizando la aplicacion actualmente, TODO - hacer que la app obtenga el id en onCreate() */
+    private static Integer ID_USUARIO_ACTUAL = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,7 +147,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapa.setOnInfoWindowClickListener(this);
         mapa.setInfoWindowAdapter(ventanaInfo);
         enfocarMapaEnUbicacion(ubicacionActual);
-        cargarUltimoEstacionamiento(1);
+        cargarUltimoEstacionamiento(ID_USUARIO_ACTUAL);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions

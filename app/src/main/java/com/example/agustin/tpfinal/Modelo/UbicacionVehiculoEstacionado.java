@@ -25,6 +25,7 @@ public class UbicacionVehiculoEstacionado {
         direccion.setLongitude(ubicacion.getLongitude());
         direccion.setLatitude(ubicacion.getLatitude());
         this.eliminado = false;
+        this.idUsuario = 0;
     }
     public UbicacionVehiculoEstacionado(){}
 
