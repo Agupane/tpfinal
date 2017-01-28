@@ -16,13 +16,15 @@ import java.util.Locale;
 
 public class UbicacionVehiculoEstacionado {
     protected Address direccion;
-    protected Long horaIngreso,horaEgreso;
-    private Integer idUsuario;
+    protected Long horaIngreso; /** LA HORA INGRESO ES UN TIMESTAMP PRACTICAMENTE UNICO POR LO TANTO ES EL ID (USAR JUNTO CON EL ID USUARIO)*/
+    protected Long horaEgreso;
+    protected Integer idUsuario;
+    protected Boolean eliminado;
     public UbicacionVehiculoEstacionado(Location ubicacion) {
         direccion = new Address(Locale.getDefault());
         direccion.setLongitude(ubicacion.getLongitude());
         direccion.setLatitude(ubicacion.getLatitude());
-
+        this.eliminado = false;
     }
     public UbicacionVehiculoEstacionado(){}
 
@@ -57,6 +59,12 @@ public class UbicacionVehiculoEstacionado {
     public void setIdUsuario(Integer idUsuario) {
         this.idUsuario = idUsuario;
     }
+
+    public void setEliminado(Boolean eliminado){
+        this.eliminado = eliminado;
+    }
+
+    public Boolean getEliminado(){return this.eliminado;}
 
     /**
      * Devuelve latitud y longitud del estacionamiento
@@ -101,30 +109,5 @@ public class UbicacionVehiculoEstacionado {
             }
         }
         return "Vehiculo";
-    }
-
-    /**
-     * Devuelve la instancia de ubicacion vehiculo en formato JSON Object
-     * @return
-     */
-    public JSONObject toJsonObject(){
-        JSONObject retorno = new JSONObject();
-        JSONObject direccion = new JSONObject();
-        try {
-            retorno.put("idUsuario", idUsuario);
-            retorno.put("horaIngreso", horaIngreso);
-            retorno.put("horaEgreso", horaEgreso);
-            direccion.put("mFeatureName",this.direccion.getFeatureName());
-            direccion.put("mMaxAddressLineIndex",this.direccion.getMaxAddressLineIndex());
-            direccion.put("mAdminArea",this.direccion.getAdminArea());
-            direccion.put("mSubAdminArea",this.direccion.getSubAdminArea());
-            direccion.put("mLocality",this.direccion.getLocality());
-            direccion.put("mSubLocality",this.direccion.getSubLocality());
-           // direccion.put("")
-        }
-        catch(JSONException e){
-            return null;
-        }
-        return null;
     }
 }

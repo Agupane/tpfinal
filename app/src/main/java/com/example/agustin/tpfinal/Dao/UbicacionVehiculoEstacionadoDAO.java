@@ -165,8 +165,6 @@ public class UbicacionVehiculoEstacionadoDAO {
      * @throws UbicacionVehiculoException
      */
     private void actualizarUbicacionVehiculoLocal(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException{
-       // Gson gson = new Gson();
-
         String jsonStringVehiculo = gson.toJson(ubicacionVehiculo);
         JSONObject vehiculo = new JSONObject();
         JSONObject baseDeDatos = new JSONObject();
@@ -179,10 +177,7 @@ public class UbicacionVehiculoEstacionadoDAO {
             /** TODO Esto hay que cambiarlo a futuro en el caso de que hagamos herencia con los tipos de estacionamientos */
             JSONArray estacionamientos = baseDeDatos.getJSONArray("estacionamientosCalle");
             actualizarArrayEstacionamientos(estacionamientos,ubicacionVehiculo);
-
-
             jsonStringBaseDeDatos = baseDeDatos.toString();
-            System.out.println("item actualizado: "+jsonStringBaseDeDatos);
             fileSaver.usarEscrituraInterna(true);
             fileSaver.guardarArchivo(jsonStringBaseDeDatos,UBICACION_VEHICULO_FILENAME,context);
         }
@@ -214,23 +209,31 @@ public class UbicacionVehiculoEstacionadoDAO {
         JSONObject objetoDireccion;
         for(int i = 0; i<estacionamientos.length();i++){
             iterador = (JSONObject) estacionamientos.get(i);
-            if(vehiculo.getHoraIngreso().compareTo((Long) iterador.get("horaIngreso")) == 0 ) // los "id" son iguales
-            {
-                if(vehiculo.getIdUsuario() != null) {
-                    iterador.put("idUsuario", vehiculo.getIdUsuario());
+            if(vehiculo.getHoraIngreso().compareTo((Long) iterador.get("horaIngreso")) == 0){ // Comprueba que el id del estacionamiento sea el mismo
+                if(iterador.get("idUsuario") == vehiculo.getIdUsuario()){ // Comprueba que el id del usuario sea el mismo
+                    if(((Boolean) iterador.get("eliminado") == false)) { // Comprueba que no es una ubicacion eliminada y por lo tanto se puede escribir
+                        /* Estos ifs estan hechos asi, porque el metodo put del JSONObject, no agrega nada si el elemento a agregar es null
+                            y borra el atributo que es nulo en el json, y por lo tanto, deja un campo vacio bugeado.
+                            entonces uso el if para dejar el campo nulo pero sin borrar el atributo
+                         */
+                        if(vehiculo.getIdUsuario() != null) {
+                            iterador.put("idUsuario", vehiculo.getIdUsuario());
+                        }
+                        if(vehiculo.getHoraEgreso() != null ){
+                            iterador.put("horaEgreso",vehiculo.getHoraEgreso());
+                        }
+                        if(vehiculo.getHoraIngreso() != null){
+                            iterador.put("horaIngreso",vehiculo.getHoraIngreso());
+                        }
+                        if(vehiculo.getDireccion() != null){
+                            Address direccion = vehiculo.getDireccion();
+                            objetoDireccion = new JSONObject(gson.toJson(direccion));
+                            iterador.put("direccion",objetoDireccion);
+                        }
+                        iterador.put("eliminado",vehiculo.getEliminado());
+                        return;
+                    }
                 }
-                if(vehiculo.getHoraEgreso() != null ){
-                    iterador.put("horaEgreso",vehiculo.getHoraEgreso());
-                }
-                if(vehiculo.getHoraIngreso() != null){
-                    iterador.put("horaIngreso",vehiculo.getHoraIngreso());
-                }
-                if(vehiculo.getDireccion() != null){
-                    Address direccion = vehiculo.getDireccion();
-                    objetoDireccion = new JSONObject(gson.toJson(direccion));
-                    iterador.put("direccion",objetoDireccion);
-                }
-                return;
             }
         }
     }
@@ -260,8 +263,6 @@ public class UbicacionVehiculoEstacionadoDAO {
     }
 
     private void guardarUbicacionVehiculoLocal(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
-        //Gson gson = new Gson();
-        Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
         String jsonStringVehiculo = gson.toJson(ubicacionVehiculo);
         JSONObject vehiculo = new JSONObject();
         JSONObject baseDeDatos = new JSONObject();
@@ -275,7 +276,6 @@ public class UbicacionVehiculoEstacionadoDAO {
             baseDeDatos.getJSONArray("estacionamientosCalle").put(vehiculo);
             jsonStringBaseDeDatos = baseDeDatos.toString();
             fileSaver.usarEscrituraInterna(true);
-            System.out.println("item nuevo"+jsonStringBaseDeDatos);
             fileSaver.guardarArchivo(jsonStringBaseDeDatos,UBICACION_VEHICULO_FILENAME,context);
         }
         catch (FileSaverException e) {
@@ -343,14 +343,8 @@ public class UbicacionVehiculoEstacionadoDAO {
         this.context = context;
         String msg,jsonString;
         UbicacionVehiculoEstacionado ubVehiculo = null;
-        Gson gson;
         try {
             jsonString = fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context);
-            gson = new Gson();
-            //ubVehiculo = gson.fromJson(jsonString,UbicacionVehiculoEstacionado.class);
-
-            System.out.println("pepino cosmico");
-            System.out.println(jsonString);
             try {
                 JSONObject jOb = new JSONObject(jsonString);
 //                System.out.println(jOb.getJSONObject("idUsuario:0"));
@@ -369,4 +363,48 @@ public class UbicacionVehiculoEstacionadoDAO {
         }
         return ubVehiculo;
     }
+
+    /**
+     * Borra el objeto de la base de datos
+     * @param ubicacionVehiculo
+     * @throws UbicacionVehiculoException
+     */
+    public void borrarUbicacionVehiculo(UbicacionVehiculoEstacionado ubicacionVehiculo, Context context) throws UbicacionVehiculoException {
+        this.context = context;
+        switch(MODO_PERSISTENCIA_CONFIGURADA){
+            case MODO_PERSISTENCIA_LOCAL:{
+                borrarUbicacionVehiculoLocal(ubicacionVehiculo);
+                break;
+            }
+            case MODO_PERSISTENCIA_REMOTA:{
+                borrarUbicacionVehiculoRemoto(ubicacionVehiculo);
+                break;
+            }
+            case MODO_PERSISTENCIA_MIXTA:{
+                borrarUbicacionVehiculoLocal(ubicacionVehiculo);
+                borrarUbicacionVehiculoRemoto(ubicacionVehiculo);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Elimina el objeto ubicacionVehiculo de la base de datos local
+     * @param ubicacionVehiculo
+     */
+    private void borrarUbicacionVehiculoLocal(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
+        ubicacionVehiculo.setEliminado(true);
+        guardarOActualizarUbicacionVehiculo(ubicacionVehiculo,context);
+    }
+
+    /**
+     * Elimina el objeto ubicacionVehiculo de la base de datos remota
+     * @param ubicacionVehiculo
+     * /** TODO - NOTA: una buena implementacion (cuando se realice), deberia de extraer solamente la hora de ingreso y el id de usuario y que el backend haga el resto
+     */
+    private void borrarUbicacionVehiculoRemoto(UbicacionVehiculoEstacionado ubicacionVehiculo){
+
+    }
+
+
 }
