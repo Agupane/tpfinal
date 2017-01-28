@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ public class UbicacionVehiculoEstacionadoDAO {
     private static final FileSaverHelper fileSaver = FileSaverHelper.getInstance(); // Clase que se encarga del almacenamiento local
     private static final String TAG = "UbicacionVehiculoDAO";
     private static final String UBICACION_VEHICULO_FILENAME = "ubicacionVehiculo.json";
+
     private Context context;
 
     private static Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
@@ -51,51 +53,47 @@ public class UbicacionVehiculoEstacionadoDAO {
     }
 
     /**
-     * Retorna el objeto ubicacion vehiculo estacionado con el id parametro
-     * @param idUbicacionVehiculo
+     * Retorna el objeto ubicacion vehiculo estacionado con el usuario parametro y la fecha de ingreso (id de la ubicacion)
+     * @param idUsuario
+     * @param fechaIngreso
      * @return
      * @throws UbicacionVehiculoException
      */
-    public UbicacionVehiculoEstacionado getUbicacionVehiculo(int idUbicacionVehiculo,Context context) throws UbicacionVehiculoException {
+    public UbicacionVehiculoEstacionado getUbicacionVehiculo(Integer idUsuario,Long fechaIngreso,Context context) throws UbicacionVehiculoException {
         this.context = context;
-        UbicacionVehiculoEstacionado nuevaUbicacion = null;
-        try {
-            /** TODO modificar y poner un switch como el de borrado */
-            if (usarApiRest) {
-           //     nuevaUbicacion = daoApiRest.getUbicacionVehiculo(idUbicacionVehiculo);
+        switch(MODO_PERSISTENCIA_CONFIGURADA){
+            case MODO_PERSISTENCIA_LOCAL:{
+                return getUbicacionVehiculoLocal(idUsuario,fechaIngreso);
             }
-            else {
-                /*
-                Cursor resultadoUbicacion;
-
-                open(false);
-                resultadoTareas = db.rawQuery("SELECT * " + " FROM " + ProyectoDBMetadata.TABLA_TAREAS + " WHERE " + ProyectoDBMetadata.TablaTareasMetadata._ID + " = " + idTarea, null);
-                resultadoTareas.moveToFirst();
-
-                String descripcion = resultadoTareas.getString(1);
-                Integer horasEstimadas = resultadoTareas.getInt(2);
-                Integer minutosTrabajados = resultadoTareas.getInt(3);
-                Prioridad prioridad = getPrioridad(resultadoTareas.getInt(4));
-                Usuario responsable = daoUsuario.getUsuario(resultadoTareas.getInt(5));
-                Proyecto proyecto = daoProyecto.getProyecto(resultadoTareas.getInt(6));
-                Boolean finalizada;
-                if (resultadoTareas.getInt(7) == 0) {
-                    finalizada = false;
-                } else {
-                    finalizada = true;
-                }
-                nuevaTarea = new Tarea(idTarea, finalizada, horasEstimadas, minutosTrabajados, proyecto, prioridad, responsable, descripcion);
-                resultadoTareas.close();
-                */
+            case MODO_PERSISTENCIA_REMOTA:{
+                return getUbicacionVehiculoRemoto(idUsuario,fechaIngreso);
+            }
+            case MODO_PERSISTENCIA_MIXTA:{
+                /* TODO - IMPLEMENTAR SI ES NECESARIO */
+                break;
             }
         }
-        catch(Exception e)
-        {
-            String msg = String.valueOf(R.string.ubicacionVehiculoBuscadoNotFound);
-            throw new UbicacionVehiculoException(msg);
-        }
-        return nuevaUbicacion;
+        return null;
     }
+    
+    private UbicacionVehiculoEstacionado getUbicacionVehiculoLocal(Integer idUsuario,Long fechaIngreso) throws UbicacionVehiculoException {
+        ArrayList<UbicacionVehiculoEstacionado> ubicacionesUsuario;
+        ubicacionesUsuario = listarUbicacionVehiculoEstacionadoLocal(idUsuario);
+        /** TODO - Cambiar implementacion a futuro si es necesario, por una implementacion que obtenga
+         *  el item desde la base de datos (como el listar por id de usuario), es mas eficiente, puesto que
+         *  se evita crear un arraylist con todos los objetos ubicaciones, directamente se lee desde el JSONArray
+         *  la fecha de ingreso, y si corresponde, se crea ese unico objeto y se devuelve
+         */
+        for(UbicacionVehiculoEstacionado iterador:ubicacionesUsuario){
+            if(iterador.getHoraIngreso().compareTo(fechaIngreso) == 0){
+                return iterador;
+            }
+        }
+        return null;
+    }
+
+    /** TODO - Implementar */
+    private UbicacionVehiculoEstacionado getUbicacionVehiculoRemoto(Integer idUsuario,Long fechaIngreso){ return null;}
 
     /**
      * Actualiza la informacion del objeto ubicacionVehiculoEstacionado pasado en la base de datos
@@ -148,11 +146,8 @@ public class UbicacionVehiculoEstacionadoDAO {
             throw new UbicacionVehiculoException(msg);
         }
     }
-    /**
-     * Actualiza la ubicacion del objeto ubicacionVehiculoEstacionado en la base de datos local
-     * @param ubicacionVehiculo
-     * @throws UbicacionVehiculoException
-     */
+
+    /* TODO - IMPLEMENTAR */
     private void actualizarUbicacionVehiculoRemoto(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
     //    daoApiRest.actualizarTarea(t);
     }
@@ -246,6 +241,7 @@ public class UbicacionVehiculoEstacionadoDAO {
         }
     }
 
+    /* TODO - Implementar */
     private void guardarUbicacionVehiculoRemoto(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
        // daoApiRest.guardarTarea(t);
     }
@@ -258,6 +254,22 @@ public class UbicacionVehiculoEstacionadoDAO {
      */
     public ArrayList<UbicacionVehiculoEstacionado> listarUbicacionVehiculoEstacionado(Integer idUsuario,Context context) throws UbicacionVehiculoException {
         this.context = context;
+        switch(MODO_PERSISTENCIA_CONFIGURADA){
+            case MODO_PERSISTENCIA_LOCAL:{
+                return listarUbicacionVehiculoEstacionadoLocal(idUsuario);
+            }
+            case MODO_PERSISTENCIA_REMOTA:{
+                return listarUbicacionVehiculoEstacionadoRemoto(idUsuario);
+            }
+            case MODO_PERSISTENCIA_MIXTA:{
+                /** TODO - IMPLEMENTAR SI ES NECESARIO */
+                break;
+            }
+        }
+        return null;
+    }
+
+    private ArrayList<UbicacionVehiculoEstacionado> listarUbicacionVehiculoEstacionadoLocal(Integer idUsuario) throws UbicacionVehiculoException {
         String msg;
         JSONObject baseDeDatos;
         JSONArray listaEstacionamientos;
@@ -271,8 +283,10 @@ public class UbicacionVehiculoEstacionadoDAO {
             for(int i = 0; i<listaEstacionamientos.length();i++){
                 iterador = ((JSONObject) listaEstacionamientos.get(i));
                 if( iterador.get("idUsuario") == idUsuario ){ // Compruebo que se corresponda el usuario
-                    iteradorObject = gson.fromJson(iterador.toString(),UbicacionVehiculoEstacionado.class);
-                    listado.add(iteradorObject);
+                    if(iterador.getBoolean("eliminado") == false){ // Solo devuelvo los que no esten eliminados
+                        iteradorObject = gson.fromJson(iterador.toString(),UbicacionVehiculoEstacionado.class);
+                        listado.add(iteradorObject);
+                    }
                 }
             }
             msg = context.getResources().getString(R.string.listaUbicacionVehiculosEncontradaExitosamente);
@@ -289,6 +303,9 @@ public class UbicacionVehiculoEstacionadoDAO {
         return listado;
     }
 
+    /** TODO - Implementar */
+    private ArrayList<UbicacionVehiculoEstacionado> listarUbicacionVehiculoEstacionadoRemoto(Integer idUsuario) throws UbicacionVehiculoException{ return null;}
+
     /**
      * Devuelve la ultima ubicacion en donde el usuario idUsuario estaciono el vehiculo
      * Si no hay ubicaciones registradas del usuario retorna null
@@ -297,8 +314,24 @@ public class UbicacionVehiculoEstacionadoDAO {
      * @return
      */
     /** TODO - Comprobar que devuelve realmente la ultima ubicacion */
-    public UbicacionVehiculoEstacionado getUltimaUbicacionVehiculo(Integer idUsuario,Context context){
+    public UbicacionVehiculoEstacionado getUltimaUbicacionVehiculo(Integer idUsuario, Context context){
         this.context = context;
+        switch(MODO_PERSISTENCIA_CONFIGURADA){
+            case MODO_PERSISTENCIA_LOCAL:{
+                return getUltimaUbicacionVehiculoLocal(idUsuario);
+            }
+            case MODO_PERSISTENCIA_REMOTA:{
+                return getUltimaUbicacionVehiculoRemoto(idUsuario);
+            }
+            case MODO_PERSISTENCIA_MIXTA:{
+                /** TODO - IMPLEMENTAR SI ES NECESARIO */
+                break;
+            }
+        }
+        return null;
+    }
+
+    private UbicacionVehiculoEstacionado getUltimaUbicacionVehiculoLocal(Integer idUsuario){
         String msg;
         JSONObject baseDeDatos;
         JSONArray listaEstacionamientos;
@@ -310,10 +343,12 @@ public class UbicacionVehiculoEstacionadoDAO {
             for(int i = listaEstacionamientos.length()-1; i>=0;i--){ // Como el file esta ordenado con los ultimos elementos al final, arranco por atras
                 iterador = ((JSONObject) listaEstacionamientos.get(i));
                 if( iterador.get("idUsuario") == idUsuario ){ // Compruebo que se corresponda el usuario
-                    iteradorObject = gson.fromJson(iterador.toString(),UbicacionVehiculoEstacionado.class);
-                    msg = context.getResources().getString(R.string.ubicacionVehiculoBuscadoFound);
-                    Log.v(TAG,msg);
-                    return iteradorObject;
+                    if(iterador.getBoolean("eliminado") == false) { // Solo lo devuelvo si no esta eliminado
+                        iteradorObject = gson.fromJson(iterador.toString(), UbicacionVehiculoEstacionado.class);
+                        msg = context.getResources().getString(R.string.ubicacionVehiculoBuscadoFound);
+                        Log.v(TAG, msg);
+                        return iteradorObject;
+                    }
                 }
             }
             msg = context.getResources().getString(R.string.listaUbicacionVehiculosNotFound);
@@ -331,6 +366,9 @@ public class UbicacionVehiculoEstacionadoDAO {
         }
         return iteradorObject;
     }
+
+    /** TODO - Implementar */
+    private UbicacionVehiculoEstacionado getUltimaUbicacionVehiculoRemoto(Integer idUsuario){ return null;}
 
     /**
      * Borra el objeto de la base de datos de manera LOGICA, no hay implementacion FISICA

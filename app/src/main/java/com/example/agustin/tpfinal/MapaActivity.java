@@ -39,8 +39,6 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.util.ArrayList;
-
 public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver {
     /** Mapa de google a mostrar */
     private GoogleMap mapa;
@@ -425,7 +423,14 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void cargarUltimoEstacionamiento(int idUsuario){
         UbicacionVehiculoEstacionado ultimoEst = ubicacionVehiculoDAO.getUltimaUbicacionVehiculo(idUsuario,this);
         if(ultimoEst !=null) {
-            agregarMarcadorEstacionamiento(ultimoEst);
+            /* Si no hay hora de egreso es porque no se produjo, y por lo tanto lo agrego como ubicacion del vehiculo */
+            if(ultimoEst.getHoraEgreso() != null ){
+                /* TODO - una implementacion mejor tendria en cuenta otra condicion para el if: que el tiempo actual vs el tiempo
+                de ingreso sea chico, si paso mucho tiempo significa que se olvido de marcar el egreso y por lo tanto habria
+                que marcar el egreso y no poner el marcador
+                */
+                agregarMarcadorEstacionamiento(ultimoEst);
+            }
         }
     }
 
