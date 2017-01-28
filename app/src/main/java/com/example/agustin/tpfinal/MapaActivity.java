@@ -22,10 +22,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.agustin.tpfinal.Dao.JsonDBHelper;
 import com.example.agustin.tpfinal.Dao.UbicacionVehiculoEstacionadoDAO;
 import com.example.agustin.tpfinal.Exceptions.UbicacionVehiculoException;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
-import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionadoCalle;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -51,7 +51,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     /** Adaptador que permite cargar con datos la ventana de informacion de los marcadores */
     private InfoWindowsAdapter ventanaInfo;
     /** Ubicacion del vehiculo cuando estaciona en la calle */
-    private UbicacionVehiculoEstacionadoCalle estCalle;
+    private UbicacionVehiculoEstacionado estCalle;
     /** Marcador que indica el ultimo lugar donde la persona realizo un estacionamiento */
     private Marker markerUltimoEstacionamiento;
     /** Marcador que indica el ultimo marcador que fue seleccionado por el usuario */
@@ -66,6 +66,8 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String TAG = "ServicioUbicacion";
     /** Dao que almacena ubicacion de vehiculos estacionados */
     private static final UbicacionVehiculoEstacionadoDAO ubicacionVehiculoDAO = UbicacionVehiculoEstacionadoDAO.getInstance();
+    /** Helper que administra la base de datos JSON LOCAL */
+    private final JsonDBHelper jsonDbHelper = JsonDBHelper.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +81,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .addApi(LocationServices.API)
                     .build();
         }
+        jsonDbHelper.setContext(this); // Le doy el contexto al json helper e instancia la bd
         mGoogleApiClient.connect();
         mResultReceiver = new AddressResultReceiver(new Handler());
         mResultReceiver.setReceiver(this);
@@ -319,7 +322,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void estacionarEnPosicionActual() {
         String msg;
         if (mGoogleApiClient.isConnected() && ubicacionActual != null) {
-            estCalle = new UbicacionVehiculoEstacionadoCalle(ubicacionActual);
+            estCalle = new UbicacionVehiculoEstacionado(ubicacionActual);
             estCalle.setHoraIngreso(System.currentTimeMillis());
             startAddressFetchService();
             mAddressRequested = false;
@@ -348,13 +351,27 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             ubicacionVehiculoDAO.guardarOActualizarUbicacionVehiculo(ubicacionEstacionado,this);
         }
         catch (UbicacionVehiculoException e) {
+            /** TODO IMPLEMENTAR TRATAMIENTO */
             Toast.makeText(this,"Error producido",Toast.LENGTH_SHORT);
+            e.printStackTrace();
         }
     }
 
-    private void actualizarUbicacionPersistida(UbicacionVehiculoEstacionadoCalle estCalle) {
+    /**
+     * Actualiza la informacion en disco del objeto ubicacion vehiculo
+     * @param estCalle
+     */
+    private void actualizarUbicacionPersistida(UbicacionVehiculoEstacionado estCalle) {
         String msg = getResources().getString(R.string.parkLoggerInicioActualizacionUbicacion);
         Log.v(TAG,msg);
+        try {
+            ubicacionVehiculoDAO.actualizarUbicacionVehiculoEstacionado(estCalle,this);
+        }
+        catch (UbicacionVehiculoException e) {
+            /** TODO IMPLEMENTAR TRATAMIENTO */
+            Toast.makeText(this,"Error producido",Toast.LENGTH_SHORT);
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -409,4 +426,5 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             agregarMarcadorEstacionamiento(ultimoEst);
         }
     }
+
 }

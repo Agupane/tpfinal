@@ -27,7 +27,7 @@
 
     <string name="fileSaverInicioEscrituraExterna">Se esta comenzando a guardar un objeto en memoria externa.</string>
     <string name="fileSaverInicioEscrituraInterna">Se esta comenzando a guardar un objeto en memoria interna.</string>
-    <string name="fileSaverInicioLecturaInterna">Se esta comenzando a guardar un objeto en memoria interna.</string>
+    <string name="fileSaverInicioLecturaInterna">Se esta comenzando a leer un objeto de memoria interna.</string>
     <string name="fileSaverInicioLecturaExterna">Se esta comenzando a leer un objeto en memoria externa.</string>
     <string name="fileSaverErrorEscrituraLocal">Se produjo un error al procesar la solicitud de guardado.</string>
     <string name="fileSaverErrorLecturaLocal">Se produjo un error al procesar la solicitud de lectura.</string>
@@ -36,4 +36,9 @@
     <string name="fileSaverAlmacenExitoso">El archivo fue almacenado en memoria con exito.</string>
     <string name="fileSaverLecturaExitosa">El archivo fue leido de memoria.</string>
     <string name="fileSaverCreacionObjetoExitosa">El archivo JSON fue leido exitosamente.</string>
+
+    <string name="jsonDbHelperIniciandoInstanciacion">Comenzando la instanciacion de la base de datos JSON.</string>
+    <string name="jsonDbHelperBDInstanciadaExitosamente">La base de datos JSON fue instanciada exitosamente.</string>
+    <string name="jsonDbHelperBDNoInstanciada">Se produjo un error al instanciar la base de datos JSON.</string>
+    <string name="jsonDbHelperBDExistente">La base de datos ya existe, no se realizaron modificaciones.</string>
 </resources>

@@ -9,15 +9,26 @@ import android.content.Context;
 import android.util.Log;
 
 import com.example.agustin.tpfinal.Exceptions.FileSaverException;
+import com.example.agustin.tpfinal.Exceptions.UbicacionVehiculoException;
+import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
 import com.example.agustin.tpfinal.R;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
-import org.json.JSONException;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Clase que permite guardar informacion en almacenamiento interno o externo aislando el comportamiento
@@ -71,7 +82,7 @@ public class FileSaverHelper {
             }
             case MEMORIA_INTERNA:{
                 contexto=context;
-                msg = contexto.getResources().getString(R.string.fileSaverInicioLecturaInterna);
+                msg = contexto.getResources().getString(R.string.fileSaverInicioEscrituraInterna);
                 Log.v(TAG,msg);
                 guardarArchivoMemoriaInterna(objeto,nombre,Activity.MODE_PRIVATE);
                 break;
@@ -131,14 +142,14 @@ public class FileSaverHelper {
         switch(TIPO_ESCRITURA){
             case MEMORIA_EXTERNA:{
                 contexto = context;
-                msg = contexto.getResources().getString(R.string.fileSaverInicioLecturaExterna);
+                msg = contexto.getResources().getString(R.string.fileSaverInicioEscrituraExterna);
                 Log.v(TAG,msg);
                 guardarArchivoMemoriaExterna(objeto,nombre,Activity.MODE_APPEND);
                 break;
             }
             case MEMORIA_INTERNA:{
                 contexto=context;
-                msg = contexto.getResources().getString(R.string.fileSaverInicioLecturaInterna);
+                msg = contexto.getResources().getString(R.string.fileSaverInicioEscrituraInterna);
                 Log.v(TAG,msg);
                 guardarArchivoMemoriaInterna(objeto,nombre,Activity.MODE_APPEND);
                 break;
@@ -200,7 +211,7 @@ public class FileSaverHelper {
         int size;
         byte[] buffer;
         FileInputStream mInput;
-        String json,msg;
+        String jsonString=null,msg;
         JSONObject objeto;
         try{
             mInput = contexto.openFileInput(fileName);
@@ -210,13 +221,7 @@ public class FileSaverHelper {
             mInput.close();
             msg = contexto.getResources().getString(R.string.fileSaverLecturaExitosa);
             Log.v(TAG,msg);
-            json = new String(buffer,"UTF-8");
-            return json;
-            /*
-            objeto = new JSONObject(json);
-            msg = contexto.getResources().getString(R.string.fileSaverCreacionObjetoExitosa);
-            Log.v(TAG,msg);
-            */
+            jsonString = new String(buffer,"UTF-8");
         }
         catch(FileNotFoundException e){
             msg = contexto.getResources().getString(R.string.fileSaverErrorLecturaFileNotFound);
@@ -228,13 +233,8 @@ public class FileSaverHelper {
             Log.v(TAG,msg);
             throw new FileSaverException(msg);
         }
-        /*
-        catch(JSONException e){
-            msg = contexto.getResources().getString(R.string.fileSaverErrorLecturaObjetoLocal);
-            Log.v(TAG,msg);
-            throw new FileSaverException(msg);
-        }
-        */
-        //return objeto;
+        return jsonString;
     }
+
+
 }

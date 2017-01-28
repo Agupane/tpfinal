@@ -2,21 +2,26 @@ package com.example.agustin.tpfinal.Dao;
 
 import android.app.Application;
 import android.content.Context;
+import android.location.Address;
 import android.util.Log;
 
 import com.example.agustin.tpfinal.Exceptions.FileSaverException;
 import com.example.agustin.tpfinal.Exceptions.UbicacionVehiculoException;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
-import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionadoCalle;
 import com.example.agustin.tpfinal.R;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by Agustin on 01/25/2017.
@@ -31,13 +36,11 @@ public class UbicacionVehiculoEstacionadoDAO {
     private static boolean usarApiRest = false; // default true
     private static final FileSaverHelper fileSaver = FileSaverHelper.getInstance(); // Clase que se encarga del almacenamiento local
     private static final String TAG = "UbicacionVehiculoDAO";
+    private static final String UBICACION_VEHICULO_FILENAME = "ubicacionVehiculo.json";
     private Context context;
-  //  private static ProyectoOpenHelper dbHelper = new ProyectoOpenHelper(MyApplication.getAppContext());
-  //  private static ProyectoApiRest daoApiRest = new ProyectoApiRest();
-   // private static final UsuarioDAO daoUsuario = UsuarioDAO.getInstance();
-   // private static ProyectoDAO daoProyecto = ProyectoDAO.getInstance();
-   // private SQLiteDatabase db;
-   // private List<Usuario> listaUsuarios;
+
+    private static Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+
     private UbicacionVehiculoEstacionadoDAO(){ }
 
     public static UbicacionVehiculoEstacionadoDAO getInstance(){
@@ -162,22 +165,35 @@ public class UbicacionVehiculoEstacionadoDAO {
      * @throws UbicacionVehiculoException
      */
     private void actualizarUbicacionVehiculoLocal(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException{
-      /*
-        try{
-            ContentValues datosAGuardar = new ContentValues();
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.HORAS_PLANIFICADAS, t.getHorasEstimadas());
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.MINUTOS_TRABAJADOS, 0);
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.TAREA, t.getDescripcion());
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.PRIORIDAD, t.getPrioridad().getId());
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.RESPONSABLE, t.getResponsable().getId());
-            datosAGuardar.put(ProyectoDBMetadata.TablaTareasMetadata.PROYECTO, t.getProyecto().getId());
-            open(true);
-            db.update(ProyectoDBMetadata.TABLA_TAREAS, datosAGuardar, ProyectoDBMetadata.TablaTareasMetadata._ID + "=" + t.getId(), null);
+       // Gson gson = new Gson();
+
+        String jsonStringVehiculo = gson.toJson(ubicacionVehiculo);
+        JSONObject vehiculo = new JSONObject();
+        JSONObject baseDeDatos = new JSONObject();
+        String jsonStringBaseDeDatos;
+        String msg;
+        try {
+            vehiculo = new JSONObject(jsonStringVehiculo);
+            jsonStringBaseDeDatos = fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context);
+            baseDeDatos = new JSONObject(jsonStringBaseDeDatos);
+            /** TODO Esto hay que cambiarlo a futuro en el caso de que hagamos herencia con los tipos de estacionamientos */
+            JSONArray estacionamientos = baseDeDatos.getJSONArray("estacionamientosCalle");
+            actualizarArrayEstacionamientos(estacionamientos,ubicacionVehiculo);
+
+
+            jsonStringBaseDeDatos = baseDeDatos.toString();
+            System.out.println("item actualizado: "+jsonStringBaseDeDatos);
+            fileSaver.usarEscrituraInterna(true);
+            fileSaver.guardarArchivo(jsonStringBaseDeDatos,UBICACION_VEHICULO_FILENAME,context);
         }
-        catch(Exception e){
-            throw new TareaException("La tarea no pudo ser actualizada, intente nuevamente");
+        catch (FileSaverException e) {
+            Log.v(TAG,e.getMessage());
         }
-          */
+        catch (JSONException e){
+            msg = context.getResources().getString(R.string.fileSaverErrorEscrituraLocal);
+            Log.v(TAG,msg);
+            throw new UbicacionVehiculoException(msg);
+        }
     }
     /**
      * Actualiza la ubicacion del objeto ubicacionVehiculoEstacionado en la base de datos local
@@ -186,6 +202,37 @@ public class UbicacionVehiculoEstacionadoDAO {
      */
     private void actualizarUbicacionVehiculoRemoto(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
     //    daoApiRest.actualizarTarea(t);
+    }
+
+    /**
+     * Parsea el JSON ARRAY para buscar el objeto correspondiente y actualizarlo
+     * @param estacionamientos
+     * @param vehiculo
+     */
+    private void actualizarArrayEstacionamientos(JSONArray estacionamientos, UbicacionVehiculoEstacionado vehiculo) throws JSONException {
+        JSONObject iterador = new JSONObject();
+        JSONObject objetoDireccion;
+        for(int i = 0; i<estacionamientos.length();i++){
+            iterador = (JSONObject) estacionamientos.get(i);
+            if(vehiculo.getHoraIngreso().compareTo((Long) iterador.get("horaIngreso")) == 0 ) // los "id" son iguales
+            {
+                if(vehiculo.getIdUsuario() != null) {
+                    iterador.put("idUsuario", vehiculo.getIdUsuario());
+                }
+                if(vehiculo.getHoraEgreso() != null ){
+                    iterador.put("horaEgreso",vehiculo.getHoraEgreso());
+                }
+                if(vehiculo.getHoraIngreso() != null){
+                    iterador.put("horaIngreso",vehiculo.getHoraIngreso());
+                }
+                if(vehiculo.getDireccion() != null){
+                    Address direccion = vehiculo.getDireccion();
+                    objetoDireccion = new JSONObject(gson.toJson(direccion));
+                    iterador.put("direccion",objetoDireccion);
+                }
+                return;
+            }
+        }
     }
 
     /**
@@ -213,14 +260,31 @@ public class UbicacionVehiculoEstacionadoDAO {
     }
 
     private void guardarUbicacionVehiculoLocal(UbicacionVehiculoEstacionado ubicacionVehiculo) throws UbicacionVehiculoException {
-        Gson gson = new Gson();
-        String json = gson.toJson(ubicacionVehiculo);
-        fileSaver.usarEscrituraInterna(true);
+        //Gson gson = new Gson();
+        Gson gson = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+        String jsonStringVehiculo = gson.toJson(ubicacionVehiculo);
+        JSONObject vehiculo = new JSONObject();
+        JSONObject baseDeDatos = new JSONObject();
+        String jsonStringBaseDeDatos;
+        String msg;
         try {
-            fileSaver.guardarOActualizarArchivo(json,"ubicacionVehiculo.json", context);
+            vehiculo = new JSONObject(jsonStringVehiculo);
+            jsonStringBaseDeDatos = fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context);
+            baseDeDatos = new JSONObject(jsonStringBaseDeDatos);
+            /** TODO Esto hay que cambiarlo a futuro en el caso de que hagamos herencia con los tipos de estacionamientos */
+            baseDeDatos.getJSONArray("estacionamientosCalle").put(vehiculo);
+            jsonStringBaseDeDatos = baseDeDatos.toString();
+            fileSaver.usarEscrituraInterna(true);
+            System.out.println("item nuevo"+jsonStringBaseDeDatos);
+            fileSaver.guardarArchivo(jsonStringBaseDeDatos,UBICACION_VEHICULO_FILENAME,context);
         }
         catch (FileSaverException e) {
-            e.printStackTrace();
+            Log.v(TAG,e.getMessage());
+        }
+        catch (JSONException e){
+            msg = context.getResources().getString(R.string.fileSaverErrorEscrituraLocal);
+            Log.v(TAG,msg);
+            throw new UbicacionVehiculoException(msg);
         }
     }
 
@@ -268,22 +332,41 @@ public class UbicacionVehiculoEstacionadoDAO {
         return null;
     }
 
+    /**
+     * Devuelve la ultima ubicacion en donde el usuario idUsuario estaciono el vehiculo
+     * @param idUsuario
+     * @param context
+     * @return
+     */
+    /** TODO - TERMINAR */
     public UbicacionVehiculoEstacionado getUltimaUbicacionVehiculo(Integer idUsuario,Context context){
         this.context = context;
-        String msg,jsonStr;
-        String ubicacionVehiculo;
-        UbicacionVehiculoEstacionado ubVehiculo;
+        String msg,jsonString;
+        UbicacionVehiculoEstacionado ubVehiculo = null;
         Gson gson;
         try {
-            ubicacionVehiculo = fileSaver.getArchivo("ubicacionVehiculo.json",context);
+            jsonString = fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context);
             gson = new Gson();
-            /** TODO - CAMBIAR LO QUE DICE ESTACINOADO CALLE, TIENE QUE SER GENERICO PARA LOS DOS TIPOS DE ESTACIONAMIENTO*/
-            ubVehiculo = gson.fromJson(ubicacionVehiculo,UbicacionVehiculoEstacionadoCalle.class);
+            //ubVehiculo = gson.fromJson(jsonString,UbicacionVehiculoEstacionado.class);
+
+            System.out.println("pepino cosmico");
+            System.out.println(jsonString);
+            try {
+                JSONObject jOb = new JSONObject(jsonString);
+//                System.out.println(jOb.getJSONObject("idUsuario:0"));
+               // System.out.println("String: "+jsonString);
+               // System.out.println(jOb);
+    //            System.out.println(jOb.getJSONObject("idUsuario:0"));
+            }
+            catch(Exception e){
+                e.printStackTrace();
+            }
+
         }
         catch (FileSaverException e) {
             msg = e.getMessage();
             Log.v(TAG,msg);
         }
-        return null;
+        return ubVehiculo;
     }
 }
