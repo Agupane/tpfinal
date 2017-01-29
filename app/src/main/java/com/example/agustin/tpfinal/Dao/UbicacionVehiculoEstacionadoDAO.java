@@ -342,7 +342,7 @@ public class UbicacionVehiculoEstacionadoDAO {
             listaEstacionamientos = baseDeDatos.getJSONArray("estacionamientosCalle");
             for(int i = listaEstacionamientos.length()-1; i>=0;i--){ // Como el file esta ordenado con los ultimos elementos al final, arranco por atras
                 iterador = ((JSONObject) listaEstacionamientos.get(i));
-                if( iterador.get("idUsuario") == idUsuario ){ // Compruebo que se corresponda el usuario
+                if( iterador.get("idUsuario") == idUsuario ){
                     if(iterador.getBoolean("eliminado") == false) { // Solo lo devuelvo si no esta eliminado
                         iteradorObject = gson.fromJson(iterador.toString(), UbicacionVehiculoEstacionado.class);
                         msg = context.getResources().getString(R.string.ubicacionVehiculoBuscadoFound);

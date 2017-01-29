@@ -252,6 +252,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
 
         mapa.animateCamera(CameraUpdateFactory.newLatLngZoom(estacionamiento.getCoordenadas(),15));
+        marker.setTag(estacionamiento);
         /*
         if(!listaReclamos.containsKey(reclamo)){
             listaReclamos.put(marker,reclamo);
@@ -278,40 +279,52 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     */
 
     @Override
+    /**
+     * Evento que aparece cuando se hace clik sobre el info windows de un marcador
+     * TODO - Implementar una interfaz mejor, en "activity_info_estacionamiento_marker" hice un bosquejo de una interfaz
+     * Ahora solamente hice un dialog interface basico para probar
+     */
     public void onInfoWindowClick(Marker marker) {
         marcadorSelected = marker;
-        System.out.println("asaaa");
+        String msgSalidaEstacionamiento = getResources().getString(R.string.btnMarcarSalida);
+        String msgNavegar = getResources().getString(R.string.btnAbrirEnNavigator);
+        String msgCancelar = getResources().getString(R.string.btnCancelar);
         // Crear un buildery vincularlo a la actividad que lo mostrará
         LayoutInflater linf = LayoutInflater.from(this);
         final View inflator = linf.inflate(R.layout.alert_distancia_busqueda, null);
         AlertDialog.Builder builder= new AlertDialog.Builder(this);
         //Configurar las características
+        /*
             builder.setView(inflator)
                     .setMessage("Desea marcar todos lo reclamos que esten a X Distancia?");
             final EditText etCantKm = (EditText) inflator.findViewById(R.id.etDistanciaReclamo);
+*/
 
-            builder.setPositiveButton("Aceptar", new DialogInterface.OnClickListener() {
+            builder.setPositiveButton( /** Listener de la opcion de navegar */
+                    msgNavegar, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            String valorKm = etCantKm.getText().toString();
-                            /*
-                            cantKmReclamo = Integer.parseInt(valorKm);
-                            cantMetrosReclamo = cantKmReclamo*1000;
-                            listaReclamosCercanos = obtenerListaMarcadoresCercanos(marcadorSelected,cantMetrosReclamo);
-                            unirReclamos(listaReclamosCercanos);
-                            */
+                            abrirNavigatorEnDestino(marcadorSelected);
                             dialog.dismiss();
                         }
-                    })
-                    .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
+                    }
+            ).setNeutralButton( /** Listener de la opcion de marcar salida del estacionamiento */
+                    msgSalidaEstacionamiento, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            marcarSalidaEstacionamiento(marcadorSelected);
+                        }
+                    }
+            ).setNegativeButton( /** Listener de la opcion de cancelar */
+                    msgCancelar, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                         }
-                    });
+                    }
+            );
         AlertDialog dialog= builder.create();
         //Mostrarlo
-        System.out.println("clik dentro");
         dialog.show();
     }
 
@@ -326,15 +339,9 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             estCalle.setHoraIngreso(System.currentTimeMillis());
             startAddressFetchService();
             mAddressRequested = false;
-            /*
-            LatLng latLngActual = new LatLng(ubicacionActual.getLatitude(),ubicacionActual.getLongitude());
-            String titulo = getResources().getString(R.string.titMarcadorEstacionamiento);
-
-            /** TODO -- Agregar foto del lugar de la calle obteniendolo de google */
-           // markerUltimoEstacionamiento = agregarMarcador(latLngActual,titulo,null);
-            /*                                                                     */
+            msg = getResources().getString(R.string.parkLoggerEstacionamientoExitoso);
+            Toast.makeText(this,msg,Toast.LENGTH_LONG);
             markerUltimoEstacionamiento = agregarMarcadorEstacionamiento(estCalle);
-            msg = getResources().getString(R.string.parkLoggerEstacionamientoCallejeroExitoso);
             Log.v(TAG,msg);
             persistirUbicacion(estCalle);
         }
@@ -361,17 +368,10 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
      * Actualiza la informacion en disco del objeto ubicacion vehiculo
      * @param estCalle
      */
-    private void actualizarUbicacionPersistida(UbicacionVehiculoEstacionado estCalle) {
+    private void actualizarUbicacionPersistida(UbicacionVehiculoEstacionado estCalle) throws UbicacionVehiculoException {
         String msg = getResources().getString(R.string.parkLoggerInicioActualizacionUbicacion);
         Log.v(TAG,msg);
-        try {
-            ubicacionVehiculoDAO.actualizarUbicacionVehiculoEstacionado(estCalle,this);
-        }
-        catch (UbicacionVehiculoException e) {
-            /** TODO IMPLEMENTAR TRATAMIENTO */
-            Toast.makeText(this,"Error producido",Toast.LENGTH_SHORT);
-            e.printStackTrace();
-        }
+        ubicacionVehiculoDAO.actualizarUbicacionVehiculoEstacionado(estCalle,this);
     }
 
     /**
@@ -410,7 +410,15 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             direccion = resultData.getParcelable(ConstantsAddresses.RESULT_DATA_KEY);
             estCalle.setDireccion(direccion);
             markerUltimoEstacionamiento.setTitle(estCalle.getTitulo());
-            actualizarUbicacionPersistida(estCalle);
+            try {
+                actualizarUbicacionPersistida(estCalle);
+            }
+            catch (UbicacionVehiculoException e){
+                errorMessage = e.getMessage();
+                Log.v(TAG,errorMessage);
+                errorMessage = getResources().getString(R.string.errorProducidoIntenteNuevamente);
+                Toast.makeText(this,errorMessage,Toast.LENGTH_LONG);
+            }
         }
         /** Si el resultado no es exitoso, espero recibir el mensaje de error en forma de string */
         else{
@@ -424,7 +432,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         UbicacionVehiculoEstacionado ultimoEst = ubicacionVehiculoDAO.getUltimaUbicacionVehiculo(idUsuario,this);
         if(ultimoEst !=null) {
             /* Si no hay hora de egreso es porque no se produjo, y por lo tanto lo agrego como ubicacion del vehiculo */
-            if(ultimoEst.getHoraEgreso() != null ){
+            if(ultimoEst.getHoraEgreso() == null ){
                 /* TODO - una implementacion mejor tendria en cuenta otra condicion para el if: que el tiempo actual vs el tiempo
                 de ingreso sea chico, si paso mucho tiempo significa que se olvido de marcar el egreso y por lo tanto habria
                 que marcar el egreso y no poner el marcador
@@ -432,6 +440,34 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                 agregarMarcadorEstacionamiento(ultimoEst);
             }
         }
+    }
+
+    /**
+     * Marca la salida del estacionamiento y elimina el marcador
+     * @param marcadorSalida
+     */
+    private void marcarSalidaEstacionamiento(Marker marcadorSalida){
+        String msg = getResources().getString(R.string.parkLoggerInicioSalidaEstacionamiento);
+        Log.v(TAG,msg);
+        UbicacionVehiculoEstacionado ubicacionVehiculo = (UbicacionVehiculoEstacionado) marcadorSalida.getTag();
+        ubicacionVehiculo.setHoraEgreso(System.currentTimeMillis());
+        try{
+            actualizarUbicacionPersistida(ubicacionVehiculo);
+            marcadorSalida.remove();
+        }
+        catch (UbicacionVehiculoException e) {
+            msg = getResources().getString(R.string.errorProducidoIntenteNuevamente);
+            Toast.makeText(this, msg, Toast.LENGTH_LONG);
+        }
+    }
+
+    /**
+     * Abre el navigator hacia las coordenadas del navegador destino
+     * TODO - Implementar
+     * @param marcadorDestino
+     */
+    private void abrirNavigatorEnDestino(Marker marcadorDestino){
+
     }
 
 }
