@@ -1,12 +1,14 @@
-package com.example.agustin.tpfinal;
+package com.example.agustin.tpfinal.VistasAndControllers;
 
 import android.Manifest;
+import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -19,15 +21,24 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.example.agustin.tpfinal.Dao.JsonDBHelper;
 import com.example.agustin.tpfinal.Dao.UbicacionVehiculoEstacionadoDAO;
 import com.example.agustin.tpfinal.Exceptions.UbicacionVehiculoException;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
+import com.example.agustin.tpfinal.R;
+import com.example.agustin.tpfinal.Utils.AddressResultReceiver;
+import com.example.agustin.tpfinal.Utils.ConstantsAddresses;
+import com.example.agustin.tpfinal.Utils.ConstantsEstacionamientoService;
+import com.example.agustin.tpfinal.Utils.FetchAddressIntentService;
+import com.example.agustin.tpfinal.Utils.GeofenceTransitionsIntentService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -39,7 +50,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver {
+import java.util.ArrayList;
+import java.util.List;
+
+public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback {
     /** Mapa de google a mostrar */
     private GoogleMap mapa;
     /** Cliente de api de google para utilizar el servicio de localizacion */
@@ -68,6 +82,10 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private final JsonDBHelper jsonDbHelper = JsonDBHelper.getInstance();
     /** Representa el id del usuario que esta utilizando la aplicacion actualmente, TODO - hacer que la app obtenga el id en onCreate() */
     private static Integer ID_USUARIO_ACTUAL = 0;
+    /** Pending intent que representa la notificacion que se genera debido a los marcadores */
+    private PendingIntent geofencePendingIntent;
+    /** Lista de todas las geofences creadas */
+    private List mGeofenceList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +99,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .addApi(LocationServices.API)
                     .build();
         }
+        mGeofenceList = new ArrayList<>();
         jsonDbHelper.setContext(this); // Le doy el contexto al json helper e instancia la bd
         mGoogleApiClient.connect();
         mResultReceiver = new AddressResultReceiver(new Handler());
@@ -241,6 +260,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /**
      * Agrega un marcador asociado al estacionamiento de una persona (la ubicacion donde estaciono)
+     * A su vez agrega una geofence asociada al marcador
      * @param estacionamiento objeto que almacena la informacion acerca de donde realizo el estacionamiento el vehiculo
      * @return marcador que se agrego
      */
@@ -249,34 +269,36 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .position(estacionamiento.getCoordenadas())
                 .title(estacionamiento.getTitulo()));
 
-        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-
-        mapa.animateCamera(CameraUpdateFactory.newLatLngZoom(estacionamiento.getCoordenadas(),15));
+        marker.setIcon(BitmapDescriptorFactory.defaultMarker(ConstantsEstacionamientoService.MARCADOR_ESTACIONAMIENTO_CALLE));
+        mapa.animateCamera(CameraUpdateFactory.newLatLngZoom(estacionamiento.getCoordenadas(), 15));
+        /* Agrego el objeto estacionamiento al marcador */
         marker.setTag(estacionamiento);
-        /*
-        if(!listaReclamos.containsKey(reclamo)){
-            listaReclamos.put(marker,reclamo);
+
+        /* Objeto que permite generar eventos de aproximacion al radio del marcador */
+        Geofence.Builder geof = new Geofence.Builder();
+        geof.setRequestId(marker.getId())
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_DWELL)
+                .setLoiteringDelay(ConstantsEstacionamientoService.GEOFENCE_STAY_TO_NOTIFICATION_TIME)
+                .setExpirationDuration(ConstantsEstacionamientoService.GEOFENCE_EXPIRATION_DURATION_TIME)
+                .setCircularRegion(marker.getPosition().latitude, marker.getPosition().longitude, ConstantsEstacionamientoService.GEOFENCE_RADIUS_IN_METERS)
+                ;
+        mGeofenceList.add(geof.build());
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            pedirPermisos();
         }
-        */
-      //  ventanaInfo.setListaReclamos(listaReclamos);
+        else
+        {
+            LocationServices.GeofencingApi.addGeofences(
+                    mGoogleApiClient,
+                    getGeofencingRequest(),
+                    getGeofencePendingIntent()
+            ).setResultCallback(this);
+        }
+
+
         return marker;
     }
-    /*
-    public Marker agregarMarcador(LatLng latLng, String titulo, File foto) {
-        Marker marker = mapa.addMarker(new MarkerOptions()
-                .position(latLng)
-                .title(titulo));
 
-        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
-
-        marker.setTag(foto);
-
-        mapa.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15));
-
-        marker.showInfoWindow();
-        return marker;
-    }
-    */
 
     @Override
     /**
@@ -463,11 +485,63 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /**
      * Abre el navigator hacia las coordenadas del navegador destino
-     * TODO - Implementar
      * @param marcadorDestino
      */
     private void abrirNavigatorEnDestino(Marker marcadorDestino){
-
+        String msg = getResources().getString(R.string.parkLoggerInicioNavegacion);
+        Log.v(TAG,msg);
+        Double latitude = marcadorDestino.getPosition().latitude;
+        Double longitude = marcadorDestino.getPosition().longitude;
+        /*
+        Intent navigation = new Intent(Intent.ACTION_VIEW, Uri
+                .parse("http://maps.google.com/maps?saddr="
+                        + Constants.latitude + ","
+                        + Constants.longitude + "&daddr="
+                        + latitude + "," + longitude));
+                        */
+        Intent navigation = new Intent(Intent.ACTION_VIEW, Uri
+                .parse("http://maps.google.com/maps?saddr="
+                        + "&daddr="
+                        + latitude + "," + longitude));
+        startActivity(navigation);
     }
 
+    /**
+     * Devuelve un pending intent relacionado a los geofences de los marcadores que permite realizar una notificacion
+     * @return
+     */
+    private PendingIntent getGeofencePendingIntent(){
+        // Reuse the PendingIntent if we already have it.
+        if (geofencePendingIntent != null) {
+            return geofencePendingIntent;
+        }
+        Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
+        // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when
+        // calling addGeofences() and removeGeofences().
+        return PendingIntent.getService(this, 0, intent, PendingIntent.
+                FLAG_UPDATE_CURRENT);
+    }
+
+    /**
+     * Genera una geofence la cual se debe asociar a un marcador de estacionamiento
+     * @return
+     */
+    private GeofencingRequest getGeofencingRequest() {
+        GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
+        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        builder.addGeofences(mGeofenceList);
+        return builder.build();
+    }
+
+    /** TODO - Implementar
+     * Pide permisos para acceder a la ubicacion mediante un mensaje de usuario
+     */
+    private void pedirPermisos(){}
+
+    @Override
+    public void onResult(@NonNull Result result) {
+        System.out.println("asaa");
+        System.out.println("estado: "+result.getStatus());
+        System.out.println("cumbia: "+result.toString());
+    }
 }

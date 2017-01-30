@@ -1,4 +1,4 @@
-package com.example.agustin.tpfinal;
+package com.example.agustin.tpfinal.VistasAndControllers;
 
 /**
  * Created by Agustin on 11/10/2016.
@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 
+import com.example.agustin.tpfinal.R;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.io.ByteArrayOutputStream;

@@ -1,4 +1,4 @@
-package com.example.agustin.tpfinal;
+package com.example.agustin.tpfinal.Utils;
 
 import android.app.IntentService;
 import android.content.Intent;
@@ -7,15 +7,14 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.os.ResultReceiver;
-import android.text.TextUtils;
 import android.util.Log;
+
+import com.example.agustin.tpfinal.R;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import static android.content.ContentValues.TAG;
 
 /**
     Servicio que permite asociar ubicaciones a direcciones de manera asincronica
