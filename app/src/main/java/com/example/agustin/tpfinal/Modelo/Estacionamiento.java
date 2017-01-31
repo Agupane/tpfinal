@@ -12,10 +12,10 @@ public class Estacionamiento {
     private String nombreEstacionamiento;
     private Address direccionEstacionamiento;
     private String tarifaEstacionamiento;
-
+    private Boolean eliminado;
 
     public void Estacionamiento(){
-
+        this.eliminado = false;
     }
 
     /**
@@ -59,4 +59,12 @@ public class Estacionamiento {
         this.tarifaEstacionamiento = tarifaEstacionamiento;
     }
 
+    public Boolean getEliminado(){
+        return this.eliminado;
+    }
+
+    public void setEliminado(Boolean eliminado)
+    {
+        this.eliminado = eliminado;
+    }
 }

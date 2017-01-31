@@ -1,6 +1,6 @@
 package com.example.agustin.tpfinal.Dao;
 
-import android.app.Application;
+
 import android.content.Context;
 import android.location.Address;
 import android.util.Log;
@@ -11,20 +11,12 @@ import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
 import com.example.agustin.tpfinal.R;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
+
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by Agustin on 01/25/2017.
@@ -36,7 +28,7 @@ public class UbicacionVehiculoEstacionadoDAO {
     private static final int MODO_PERSISTENCIA_LOCAL = 1;  // Los datos se almacenan solamente en la bdd local
     private static final int MODO_PERSISTENCIA_REMOTA = 0; // Los datos se almacenan solamente en la nube
     private static int MODO_PERSISTENCIA_CONFIGURADA = MODO_PERSISTENCIA_MIXTA; // Como default es mixta
-    private static boolean usarApiRest = false; // default true
+    private static boolean usarApiRest = false; // default false
     private static final FileSaverHelper fileSaver = FileSaverHelper.getInstance(); // Clase que se encarga del almacenamiento local
     private static final String TAG = "UbicacionVehiculoDAO";
     private static final String UBICACION_VEHICULO_FILENAME = "ubicacionVehiculo.json";
