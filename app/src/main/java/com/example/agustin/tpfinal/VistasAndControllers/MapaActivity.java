@@ -540,8 +540,5 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onResult(@NonNull Result result) {
-        System.out.println("asaa");
-        System.out.println("estado: "+result.getStatus());
-        System.out.println("cumbia: "+result.toString());
     }
 }

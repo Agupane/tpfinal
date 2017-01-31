@@ -4,12 +4,13 @@ package com.example.agustin.tpfinal.Modelo;
  * Created by Nahuel SG on 30/01/2017.
  */
 
+import android.location.Address;
+
 import com.google.android.gms.maps.model.LatLng;
 
 public class Estacionamiento {
     private String nombreEstacionamiento;
-    private LatLng posicionEstacionamiento;
-    private String direccionEstacionamiento;
+    private Address direccionEstacionamiento;
     private String tarifaEstacionamiento;
 
 
@@ -28,19 +29,25 @@ public class Estacionamiento {
         this.nombreEstacionamiento = nombreEstacionamiento;
     }
 
+    /**
+     * Devuelve la latitud y longitud del estacionamiento
+     * @return
+     */
     public LatLng getPosicionEstacionamiento() {
-        return posicionEstacionamiento;
+        LatLng latLng = new LatLng(direccionEstacionamiento.getLatitude(),direccionEstacionamiento.getLongitude());
+        return latLng;
     }
 
     public void setPosicionEstacionamiento(LatLng posicionEstacionamiento) {
-        this.posicionEstacionamiento = posicionEstacionamiento;
+        direccionEstacionamiento.setLatitude(posicionEstacionamiento.latitude);
+        direccionEstacionamiento.setLongitude(posicionEstacionamiento.longitude);
     }
 
-    public String getDireccionEstacionamiento() {
+    public Address getDireccionEstacionamiento() {
         return direccionEstacionamiento;
     }
 
-    public void setDireccionEstacionamiento(String direccionEstacionamiento) {
+    public void setDireccionEstacionamiento(Address direccionEstacionamiento) {
         this.direccionEstacionamiento = direccionEstacionamiento;
     }
 
@@ -51,4 +58,5 @@ public class Estacionamiento {
     public void setTarifaEstacionamiento(String tarifaEstacionamiento) {
         this.tarifaEstacionamiento = tarifaEstacionamiento;
     }
+
 }
