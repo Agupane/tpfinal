@@ -29,9 +29,11 @@ public class UbicacionVehiculoEstacionadoDAO {
     private static final int MODO_PERSISTENCIA_REMOTA = 0; // Los datos se almacenan solamente en la nube
     private static int MODO_PERSISTENCIA_CONFIGURADA = MODO_PERSISTENCIA_MIXTA; // Como default es mixta
     private static boolean usarApiRest = false; // default false
-    private static final FileSaverHelper fileSaver = FileSaverHelper.getInstance(); // Clase que se encarga del almacenamiento local
+    private static final LocalDBManager dbManagerLocal = LocalDBManager.getInstance(); // Clase que se encarga del almacenamiento local
     private static final String TAG = "UbicacionVehiculoDAO";
     private static final String UBICACION_VEHICULO_FILENAME = "ubicacionVehiculo.json";
+
+
 
     private Context context;
 
@@ -120,14 +122,13 @@ public class UbicacionVehiculoEstacionadoDAO {
         String jsonStringBaseDeDatos;
         String msg;
         try {
-            jsonStringBaseDeDatos = fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context);
+            jsonStringBaseDeDatos = dbManagerLocal.getArchivo(UBICACION_VEHICULO_FILENAME,context);
             baseDeDatos = new JSONObject(jsonStringBaseDeDatos);
             /** TODO Esto hay que cambiarlo a futuro en el caso de que hagamos herencia con los tipos de estacionamientos */
             JSONArray estacionamientos = baseDeDatos.getJSONArray("estacionamientosCalle");
             actualizarArrayEstacionamientos(estacionamientos,ubicacionVehiculo);
             jsonStringBaseDeDatos = baseDeDatos.toString();
-            fileSaver.usarEscrituraInterna(true);
-            fileSaver.guardarArchivo(jsonStringBaseDeDatos,UBICACION_VEHICULO_FILENAME,context);
+            dbManagerLocal.guardarArchivo(jsonStringBaseDeDatos,UBICACION_VEHICULO_FILENAME,context);
         }
         catch (FileSaverException e) {
             Log.v(TAG,e.getMessage());
@@ -215,13 +216,12 @@ public class UbicacionVehiculoEstacionadoDAO {
         String msg;
         try {
             vehiculo = new JSONObject(jsonStringVehiculo);
-            jsonStringBaseDeDatos = fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context);
+            jsonStringBaseDeDatos = dbManagerLocal.getArchivo(UBICACION_VEHICULO_FILENAME,context);
             baseDeDatos = new JSONObject(jsonStringBaseDeDatos);
             /** TODO Esto hay que cambiarlo a futuro en el caso de que hagamos herencia con los tipos de estacionamientos */
             baseDeDatos.getJSONArray("estacionamientosCalle").put(vehiculo);
             jsonStringBaseDeDatos = baseDeDatos.toString();
-            fileSaver.usarEscrituraInterna(true);
-            fileSaver.guardarArchivo(jsonStringBaseDeDatos,UBICACION_VEHICULO_FILENAME,context);
+            dbManagerLocal.guardarArchivo(jsonStringBaseDeDatos,UBICACION_VEHICULO_FILENAME,context);
         }
         catch (FileSaverException e) {
             Log.v(TAG,e.getMessage());
@@ -269,7 +269,7 @@ public class UbicacionVehiculoEstacionadoDAO {
         JSONObject iterador;
         UbicacionVehiculoEstacionado iteradorObject;
         try{
-            baseDeDatos = new JSONObject(fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context));
+            baseDeDatos = new JSONObject(dbManagerLocal.getArchivo(UBICACION_VEHICULO_FILENAME,context));
             listaEstacionamientos = baseDeDatos.getJSONArray("estacionamientosCalle");
             listado = new ArrayList<UbicacionVehiculoEstacionado>();
             for(int i = 0; i<listaEstacionamientos.length();i++){
@@ -330,7 +330,7 @@ public class UbicacionVehiculoEstacionadoDAO {
         JSONObject iterador;
         UbicacionVehiculoEstacionado iteradorObject = null;
         try {
-            baseDeDatos = new JSONObject(fileSaver.getArchivo(UBICACION_VEHICULO_FILENAME,context));
+            baseDeDatos = new JSONObject(dbManagerLocal.getArchivo(UBICACION_VEHICULO_FILENAME,context));
             listaEstacionamientos = baseDeDatos.getJSONArray("estacionamientosCalle");
             for(int i = listaEstacionamientos.length()-1; i>=0;i--){ // Como el file esta ordenado con los ultimos elementos al final, arranco por atras
                 iterador = ((JSONObject) listaEstacionamientos.get(i));

@@ -29,6 +29,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * Clase que permite guardar informacion en almacenamiento interno o externo aislando el comportamiento
