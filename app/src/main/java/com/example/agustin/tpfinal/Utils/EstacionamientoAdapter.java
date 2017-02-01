@@ -2,6 +2,7 @@ package com.example.agustin.tpfinal.Utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -101,13 +102,11 @@ public class EstacionamientoAdapter extends BaseAdapter {
                     //Lanza un intent, mCont es el contexto que contiene el adapter
                     // Enviar la LatLng del lugar... TODO esto
                     LatLng latLngToMap = listaEstacionamiento.get(position).getPosicionEstacionamiento();
-                    //Luego de tomar la latLng del estacionamiento la guardo en un double[]
-                    double[] latLngToSend = new double[2];
-                    latLngToSend[0] = latLngToMap.latitude;
-                    latLngToSend[1] = latLngToMap.longitude;
+                    Bundle args = new Bundle();
+                    args.putParcelable("latlong", latLngToMap);
                     //Hago el intent y envio el dato
                     mCont.startActivity((new Intent(mCont, MapaActivity.class))
-                            .putExtra("latLng",latLngToSend)
+                            /**.putExtra("latLng",latLngToSend)*/ .putExtra("bundle", args)
                             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                 }
             }

@@ -32,6 +32,7 @@ import android.widget.Toast;
 import com.example.agustin.tpfinal.Dao.JsonDBHelper;
 import com.example.agustin.tpfinal.Dao.UbicacionVehiculoEstacionadoDAO;
 import com.example.agustin.tpfinal.Exceptions.UbicacionVehiculoException;
+import com.example.agustin.tpfinal.Modelo.Estacionamiento;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
 import com.example.agustin.tpfinal.R;
 import com.example.agustin.tpfinal.Utils.AddressResultReceiver;
@@ -58,6 +59,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class MapaActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback, View.OnClickListener {
     /** Mapa de google a mostrar */
@@ -98,6 +100,9 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     FloatingActionButton fab;
     /** Booleano que sirve para identificar si pulsó dos veces para salir */
     boolean doubleBackToExitPressedOnce = false;
+    /** Lista de Estacionamientos para marcar en el mapa */
+    private Estacionamiento[] Estacionamientos;
+    Intent intent; String action;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +120,11 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener((View.OnClickListener) this);
+
+        intent = getIntent();
+        action = intent.getAction();
+
+        llenarEstacionamientos();
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
@@ -221,7 +231,18 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         mapa.setOnMapLongClickListener(this);
         mapa.setOnInfoWindowClickListener(this);
         mapa.setInfoWindowAdapter(ventanaInfo);
-        enfocarMapaEnUbicacion(ubicacionActual);
+        marcarEstacionamientos();
+        /** TODO refactorizar: si viene desde un intent (boton Ver Mapa en el Listado...) enfoca en ese punto */
+        if(action==null || !action.equals("android.intent.action.MAIN")){
+            Bundle bundle = getIntent().getParcelableExtra("bundle");
+            LatLng posicion = bundle.getParcelable("latlong");
+            Location aux = new Location(ubicacionActual);
+            aux.setLatitude(posicion.latitude);
+            aux.setLongitude(posicion.longitude);
+            enfocarMapaEnUbicacion(aux);
+        }
+        else enfocarMapaEnUbicacion(ubicacionActual);
+
         cargarUltimoEstacionamiento(ID_USUARIO_ACTUAL);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -631,5 +652,47 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
             super.onBackPressed();
             return;
         }
+    }
+
+
+    /** TODO CAMBIAR este método!! Levantar la lista desde JSON persistidos (cuando esté implementado) */
+    private void llenarEstacionamientos(){
+        Estacionamientos = new Estacionamiento[3];
+        Estacionamientos[0] = new Estacionamiento();
+        Estacionamientos[0].setDireccionEstacionamiento("DIRECCIÓN: Terminal Belgrano");
+        Estacionamientos[0].setNombreEstacionamiento("NOMBRE: El Estacionamiento 0");
+        Estacionamientos[0].setHorarios("HORARIOS: Lun-Dom abierto las 24hs");
+        Estacionamientos[0].setTarifaEstacionamiento("TARIFA: $30/hs");
+        Estacionamientos[0].setPosicionEstacionamiento(new LatLng(-31.642935, -60.700636));
+
+        Estacionamientos[1] = new Estacionamiento();
+        Estacionamientos[1].setDireccionEstacionamiento("DIRECCIÓN: Rivadavia 3176");
+        Estacionamientos[1].setNombreEstacionamiento("NOMBRE: El Estacionamiento 1");
+        Estacionamientos[1].setHorarios("HORARIOS: Lun-Dom de 8hs a 19hs");
+        Estacionamientos[1].setTarifaEstacionamiento("TARIFA: $20/hs");
+        Estacionamientos[1].setPosicionEstacionamiento(new LatLng(-31.639896, -60.702384));
+
+
+        Estacionamientos[2] = new Estacionamiento();
+        Estacionamientos[2].setDireccionEstacionamiento("DIRECCIÓN: La Rioja y 25 de Mayo");
+        Estacionamientos[2].setNombreEstacionamiento("NOMBRE: El Estacionamiento 2");
+        Estacionamientos[2].setHorarios("HORARIOS: Lun-Vie abierto las 24hs, Sáb de 9hs a 18hs");
+        Estacionamientos[2].setTarifaEstacionamiento("TARIFA: Te cobramos dos huevos");
+        Estacionamientos[2].setPosicionEstacionamiento(new LatLng(-31.646182, -60.705633));
+    }
+
+    private void marcarEstacionamientos(){
+        mapa.addMarker((new MarkerOptions()
+                .position(Estacionamientos[0].getPosicionEstacionamiento()) //Pongo el lugar
+                .title(Estacionamientos[0].getNombreEstacionamiento())) //Le meto titulo
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));
+        mapa.addMarker((new MarkerOptions()
+                .position(Estacionamientos[1].getPosicionEstacionamiento()) //Pongo el lugar
+                .title(Estacionamientos[1].getNombreEstacionamiento())) //Le meto titulo
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));
+        mapa.addMarker((new MarkerOptions()
+                .position(Estacionamientos[2].getPosicionEstacionamiento()) //Pongo el lugar
+                .title(Estacionamientos[2].getNombreEstacionamiento())) //Le meto titulo
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));
     }
 }

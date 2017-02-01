@@ -28,8 +28,12 @@
         </activity>
         <activity
             android:name=".VistasAndControllers.ListarLugaresActivity"
-            android:label="Listado de Estacionamientos"
-            android:launchMode="singleTask" />
+            android:label="Listado de Estacionamientos" >
+            <intent-filter>
+                <action android:name="android.intent.action.LISTA" />
+                android:launchMode="singleTask"
+            </intent-filter>
+        </activity>
 
         <provider
             android:name="android.support.v4.content.FileProvider"
