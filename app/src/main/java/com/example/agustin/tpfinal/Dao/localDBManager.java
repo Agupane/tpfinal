@@ -18,7 +18,7 @@ import static java.lang.Thread.sleep;
 /**
  * Created by Agustin on 02/01/2017.
  */
-public class LocalDBManager {
+class LocalDBManager {
 
     private ExecutorService tareaFileSaver = Executors.newSingleThreadExecutor();
     private Future<?> future;

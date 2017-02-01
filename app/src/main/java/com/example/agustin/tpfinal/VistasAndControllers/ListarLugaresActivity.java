@@ -50,15 +50,15 @@ public class ListarLugaresActivity extends AppCompatActivity implements View.OnC
     private void llenarEstacionamientos(){
         Estacionamientos = new Estacionamiento[3];
         Estacionamientos[0] = new Estacionamiento();
-        Estacionamientos[0].setDireccionEstacionamiento("DIRECCIÓN: Terminal Belgrano");
-        Estacionamientos[0].setNombreEstacionamiento("NOMBRE: El Estacionamiento 0");
+        Estacionamientos[0].setDireccionEstacionamiento("DIRECCIÓN: Belgrano 2964");
+        Estacionamientos[0].setNombreEstacionamiento("NOMBRE: El Estacionamiento de la Terminal");
         Estacionamientos[0].setHorarios("HORARIOS: Lun-Dom abierto las 24hs");
         Estacionamientos[0].setTarifaEstacionamiento("TARIFA: $30/hs");
         Estacionamientos[0].setPosicionEstacionamiento(new LatLng(-31.642935, -60.700636));
 
         Estacionamientos[1] = new Estacionamiento();
         Estacionamientos[1].setDireccionEstacionamiento("DIRECCIÓN: Rivadavia 3176");
-        Estacionamientos[1].setNombreEstacionamiento("NOMBRE: El Estacionamiento 1");
+        Estacionamientos[1].setNombreEstacionamiento("NOMBRE: Estacionamiento Rivadavia");
         Estacionamientos[1].setHorarios("HORARIOS: Lun-Dom de 8hs a 19hs");
         Estacionamientos[1].setTarifaEstacionamiento("TARIFA: $20/hs");
         Estacionamientos[1].setPosicionEstacionamiento(new LatLng(-31.639896, -60.702384));
@@ -66,7 +66,7 @@ public class ListarLugaresActivity extends AppCompatActivity implements View.OnC
 
         Estacionamientos[2] = new Estacionamiento();
         Estacionamientos[2].setDireccionEstacionamiento("DIRECCIÓN: La Rioja y 25 de Mayo");
-        Estacionamientos[2].setNombreEstacionamiento("NOMBRE: El Estacionamiento 2");
+        Estacionamientos[2].setNombreEstacionamiento("NOMBRE: GARAGE MONTeCoRLO");
         Estacionamientos[2].setHorarios("HORARIOS: Lun-Vie abierto las 24hs, Sáb de 9hs a 18hs");
         Estacionamientos[2].setTarifaEstacionamiento("TARIFA: Te cobramos dos huevos");
         Estacionamientos[2].setPosicionEstacionamiento(new LatLng(-31.646182, -60.705633));
@@ -79,6 +79,7 @@ public class ListarLugaresActivity extends AppCompatActivity implements View.OnC
         if (v.getId() == fab.getId()) {
             Intent intent = new Intent(this, MapaActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intent.putExtra("bandera", "FABMAPA");
             startActivity(intent);
         }
     }

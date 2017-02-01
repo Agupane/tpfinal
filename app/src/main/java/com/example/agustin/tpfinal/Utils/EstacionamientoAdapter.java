@@ -107,6 +107,7 @@ public class EstacionamientoAdapter extends BaseAdapter {
                     //Hago el intent y envio el dato
                     mCont.startActivity((new Intent(mCont, MapaActivity.class))
                             /**.putExtra("latLng",latLngToSend)*/ .putExtra("bundle", args)
+                            .putExtra("bandera", "VER")
                             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                 }
             }

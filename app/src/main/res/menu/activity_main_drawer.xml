@@ -12,8 +12,8 @@
             android:title="@string/navigation_recordar_estacionamiento"
             android:icon="@drawable/icn_menu_auto" />
         <item
-            android:id="@+id/nav_algo"
-            android:title="Algo más"
+            android:id="@+id/nav_clean"
+            android:title="Limpiar"
             android:icon="@drawable/icn_menu_sync" />
     </group>
 

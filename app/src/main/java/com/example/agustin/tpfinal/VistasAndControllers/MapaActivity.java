@@ -102,7 +102,6 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     boolean doubleBackToExitPressedOnce = false;
     /** Lista de Estacionamientos para marcar en el mapa */
     private Estacionamiento[] Estacionamientos;
-    Intent intent; String action;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,9 +119,6 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener((View.OnClickListener) this);
-
-        intent = getIntent();
-        action = intent.getAction();
 
         llenarEstacionamientos();
 
@@ -203,9 +199,10 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                     Log.v("OPCIONES_USUARIO: ","Estacionando en ubicacion actual");
                     estacionarEnPosicionActual();
                     this.lugarEstacionamientoGuardado = true;
-                    item.setTitle(R.string.navigation_recordar_estacionamiento);
+                    item.setTitle("Donde estacioné?"); //para cambiar dinamicamente el texto
                 }
                 else {
+                    /** TODO cambiar dinámicamente este menú si se puede, entre "Estacionar aca" e "Ir a donde estacioné" */
                     Log.v("OPCIONES_USUARIO: ","Recordando ubicación guardada");
                     //Creo una Location auxiliar con las coordenadas de la ubicacion guardada y enfoco el mapa ahi
                     Location lugarEstacionado = new Location(ubicacionActual);
@@ -213,6 +210,18 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                     lugarEstacionado.setLongitude(estCalle.getCoordenadas().longitude);
                     enfocarMapaEnUbicacion(lugarEstacionado);
                 }
+                break;
+            }
+            case R.id.nav_clean: {
+                Log.v("OPCIONES_USUARIO: ","Borrando ubicación guardada");
+                this.marcarSalidaEstacionamiento(markerUltimoEstacionamiento);
+                markerUltimoEstacionamiento=null;
+                estCalle=null;
+                this.lugarEstacionamientoGuardado = false;
+                NavigationView nv = (NavigationView) findViewById(R.id.nav_view);
+                Menu m = nv.getMenu();
+                (m.getItem(1)).setTitle("Estacionar aquí");
+                //((MenuItem) findViewById(R.id.nav_estac)).setTitle("Estacionar aquí");
                 break;
             }
             default: {
@@ -232,18 +241,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         mapa.setOnInfoWindowClickListener(this);
         mapa.setInfoWindowAdapter(ventanaInfo);
         marcarEstacionamientos();
-        /** TODO refactorizar: si viene desde un intent (boton Ver Mapa en el Listado...) enfoca en ese punto */
-        if(action==null || !action.equals("android.intent.action.MAIN")){
-            Bundle bundle = getIntent().getParcelableExtra("bundle");
-            LatLng posicion = bundle.getParcelable("latlong");
-            Location aux = new Location(ubicacionActual);
-            aux.setLatitude(posicion.latitude);
-            aux.setLongitude(posicion.longitude);
-            enfocarMapaEnUbicacion(aux);
-        }
-        else enfocarMapaEnUbicacion(ubicacionActual);
-
-        cargarUltimoEstacionamiento(ID_USUARIO_ACTUAL);
+        estCalle=cargarUltimoEstacionamiento(ID_USUARIO_ACTUAL);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -254,6 +252,18 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
             // for ActivityCompat#requestPermissions for more details.
             //  return;
         }
+
+        /** TODO refactorizar: si viene desde un intent (boton Ver Mapa en el Listado...) enfoca en ese punto */
+        String intentExtraBandera = getIntent().getStringExtra("bandera");
+        if(intentExtraBandera!=null && intentExtraBandera.equals("VER")){
+            Bundle bundle = getIntent().getParcelableExtra("bundle");
+            LatLng posicion = bundle.getParcelable("latlong");
+            Location aux = new Location(ubicacionActual);
+            aux.setLatitude(posicion.latitude);
+            aux.setLongitude(posicion.longitude);
+            enfocarMapaEnUbicacion(aux);
+        }
+        else enfocarMapaEnUbicacion(ubicacionActual);
 
     }
 
@@ -531,7 +541,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /** Permite cargar el ultimo estacionamiento en el mapa del usuario */
-    public void cargarUltimoEstacionamiento(int idUsuario){
+    public UbicacionVehiculoEstacionado cargarUltimoEstacionamiento(int idUsuario){
         UbicacionVehiculoEstacionado ultimoEst = ubicacionVehiculoDAO.getUltimaUbicacionVehiculo(idUsuario,this);
         if(ultimoEst !=null) {
             /* Si no hay hora de egreso es porque no se produjo, y por lo tanto lo agrego como ubicacion del vehiculo */
@@ -543,6 +553,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 agregarMarcadorEstacionamiento(ultimoEst);
             }
         }
+        return ultimoEst;
     }
 
     /**
