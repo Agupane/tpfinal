@@ -20,6 +20,7 @@ public class UbicacionVehiculoEstacionado {
     protected Long horaEgreso;
     protected Integer idUsuario;
     protected Boolean eliminado;
+
     public UbicacionVehiculoEstacionado(Location ubicacion) {
         direccion = new Address(Locale.getDefault());
         direccion.setLongitude(ubicacion.getLongitude());

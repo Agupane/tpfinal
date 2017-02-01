@@ -1,7 +1,11 @@
 <resources>
-    <string name="app_name">tpfinal</string>
+    <string name="app_name">AppTpFinal</string>
     <string name="action_buscar_direccion">Buscar direccion</string>
     <string name="google_maps_key">AIzaSyCYApmnjmNV1KbYq32RYMlZbb_mTiOYmHA</string>
+    <string name="navigation_drawer_open">Mostrar Opciones</string>
+    <string name="navigation_drawer_close">Ocultar Opciones</string>
+    <string name="navigation_recordar_estacionamiento">Estacionar aquí</string>
+    <string name="navigation_encontrar_estacionamiento">Donde estacioné?</string>
 
 
     <!-- Strings del servicio de mapa y ubicacion -->

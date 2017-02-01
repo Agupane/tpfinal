@@ -10,8 +10,13 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class Estacionamiento {
     private String nombreEstacionamiento;
-    private Address direccionEstacionamiento;
+    private String direccionEstacionamiento;
+    private LatLng posicionEstacionamiento;
+    private String telefono;
+    private String horarios;
     private String tarifaEstacionamiento;
+    private boolean esTechado;
+    private boolean aceptaTarjetas;
     private Boolean eliminado;
 
     public void Estacionamiento(){
@@ -34,20 +39,18 @@ public class Estacionamiento {
      * @return
      */
     public LatLng getPosicionEstacionamiento() {
-        LatLng latLng = new LatLng(direccionEstacionamiento.getLatitude(),direccionEstacionamiento.getLongitude());
-        return latLng;
+        return posicionEstacionamiento;
     }
 
     public void setPosicionEstacionamiento(LatLng posicionEstacionamiento) {
-        direccionEstacionamiento.setLatitude(posicionEstacionamiento.latitude);
-        direccionEstacionamiento.setLongitude(posicionEstacionamiento.longitude);
+        this.posicionEstacionamiento = posicionEstacionamiento;
     }
 
-    public Address getDireccionEstacionamiento() {
+    public String getDireccionEstacionamiento() {
         return direccionEstacionamiento;
     }
 
-    public void setDireccionEstacionamiento(Address direccionEstacionamiento) {
+    public void setDireccionEstacionamiento(String direccionEstacionamiento) {
         this.direccionEstacionamiento = direccionEstacionamiento;
     }
 
@@ -66,5 +69,37 @@ public class Estacionamiento {
     public void setEliminado(Boolean eliminado)
     {
         this.eliminado = eliminado;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public String getHorarios() {
+        return horarios;
+    }
+
+    public void setHorarios(String horarios) {
+        this.horarios = horarios;
+    }
+
+    public boolean isEsTechado() {
+        return esTechado;
+    }
+
+    public void setEsTechado(boolean esTechado) {
+        this.esTechado = esTechado;
+    }
+
+    public boolean isAceptaTarjetas() {
+        return aceptaTarjetas;
+    }
+
+    public void setAceptaTarjetas(boolean aceptaTarjetas) {
+        this.aceptaTarjetas = aceptaTarjetas;
     }
 }

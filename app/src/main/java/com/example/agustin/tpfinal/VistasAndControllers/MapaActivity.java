@@ -13,9 +13,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -53,7 +59,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapaActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback {
+public class MapaActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback, View.OnClickListener {
     /** Mapa de google a mostrar */
     private GoogleMap mapa;
     /** Cliente de api de google para utilizar el servicio de localizacion */
@@ -86,11 +92,30 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     private PendingIntent geofencePendingIntent;
     /** Lista de todas las geofences creadas */
     private List mGeofenceList;
+    /** Booleano que indica si se guardó la ubicación donde se estacionó */
+    private boolean lugarEstacionamientoGuardado = false;
+    /** Boton que permite switchear entre la lista de lugares y el mapa */
+    FloatingActionButton fab;
+    /** Booleano que sirve para identificar si pulsó dos veces para salir */
+    boolean doubleBackToExitPressedOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mapa);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener((View.OnClickListener) this);
+
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -109,7 +134,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_mapa, menu);
+        //getMenuInflater().inflate(R.menu.activity_main_drawer, menu);
         return true;
     }
 
@@ -135,6 +160,8 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onPause();
     }
 
+    /* TODO borrar este método comentado si no vamos a usar el Options Menu */
+/*
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -144,7 +171,7 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //noinspection SimplifiableIfStatement
         switch (id) {
-            case R.id.action_estacionar: {
+            case R.id.nav_estac: {
                 Log.v("OPCIONES_USUARIO: ","Estacionando en ubicacion actual");
                 estacionarEnPosicionActual();
                 break;
@@ -154,6 +181,37 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
         return super.onOptionsItemSelected(item);
+    }
+*/
+
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        switch (id) {
+            case R.id.nav_estac: {
+                if(item.getTitle().equals("Estacionar aquí")){
+                    Log.v("OPCIONES_USUARIO: ","Estacionando en ubicacion actual");
+                    estacionarEnPosicionActual();
+                    this.lugarEstacionamientoGuardado = true;
+                    item.setTitle(R.string.navigation_recordar_estacionamiento);
+                }
+                else {
+                    Log.v("OPCIONES_USUARIO: ","Recordando ubicación guardada");
+                    //Creo una Location auxiliar con las coordenadas de la ubicacion guardada y enfoco el mapa ahi
+                    Location lugarEstacionado = new Location(ubicacionActual);
+                    lugarEstacionado.setLatitude(estCalle.getCoordenadas().latitude);
+                    lugarEstacionado.setLongitude(estCalle.getCoordenadas().longitude);
+                    enfocarMapaEnUbicacion(lugarEstacionado);
+                }
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
     }
 
     @Override
@@ -181,12 +239,14 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapLongClick(LatLng latLng) {
         /*
-        Intent i = new Intent(MapaActivity.this, AltaReclamoActivity.class);
+        Intent i = new Intent(MapaActivity.this, Activity.class);
         i.putExtra("coordenadas",latLng);
         ubicacion=latLng;
         startActivityForResult(i, CODIGO_RESULTADO_ALTA_RECLAMO);
         */
     }
+
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -540,5 +600,36 @@ public class MapaActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onResult(@NonNull Result result) {
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == fab.getId()) {
+            Intent intent = new Intent(this, ListarLugaresActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        //Checking for fragment count on backstack
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportFragmentManager().popBackStack();
+        } else if (!doubleBackToExitPressedOnce) {
+            this.doubleBackToExitPressedOnce = true;
+            Toast.makeText(this,"Presione ATRAS otra vez para salir", Toast.LENGTH_SHORT).show();
+
+            new Handler().postDelayed(new Runnable() {
+
+                @Override
+                public void run() {
+                    doubleBackToExitPressedOnce = false;
+                }
+            }, 2000);
+        } else {
+            super.onBackPressed();
+            return;
+        }
     }
 }

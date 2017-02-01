@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_alarma"
+            android:title="Alarma"
+            android:icon="@drawable/icn_manu_alarma" />
+
+        <item
+            android:id="@+id/nav_estac"
+            android:title="@string/navigation_recordar_estacionamiento"
+            android:icon="@drawable/icn_menu_auto" />
+        <item
+            android:id="@+id/nav_algo"
+            android:title="Algo más"
+            android:icon="@drawable/icn_menu_sync" />
+    </group>
+
+    <item android:title="Usuario">
+        <menu>
+            <item
+                android:id="@+id/nav_reservas"
+                android:title="Reservas"
+                android:icon="@drawable/icn_menu_info" />
+            <item
+                android:id="@+id/nav_preferencias"
+                android:title="Preferencias"
+                android:icon="@drawable/icn_menu_settings" />
+        </menu>
+    </item>
+
+</menu>
