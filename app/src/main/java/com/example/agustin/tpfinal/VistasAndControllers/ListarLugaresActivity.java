@@ -46,7 +46,7 @@ public class ListarLugaresActivity extends AppCompatActivity implements View.OnC
         setTitle("Listados de Estacionamientos");
     }
 
-
+    //* TODO borrar esto una vez implementada la persistencia en JSON */
     private void llenarEstacionamientos(){
         Estacionamientos = new Estacionamiento[3];
         Estacionamientos[0] = new Estacionamiento();
@@ -55,14 +55,21 @@ public class ListarLugaresActivity extends AppCompatActivity implements View.OnC
         Estacionamientos[0].setHorarios("HORARIOS: Lun-Dom abierto las 24hs");
         Estacionamientos[0].setTarifaEstacionamiento("TARIFA: $30/hs");
         Estacionamientos[0].setPosicionEstacionamiento(new LatLng(-31.642935, -60.700636));
+        Estacionamientos[0].setTelefono("4567893");
+        Estacionamientos[0].setEsTechado(true);
+        Estacionamientos[0].setAceptaTarjetas(true);
+        Estacionamientos[0].setCapacidad(80);
 
         Estacionamientos[1] = new Estacionamiento();
         Estacionamientos[1].setDireccionEstacionamiento("DIRECCIÓN: Rivadavia 3176");
         Estacionamientos[1].setNombreEstacionamiento("NOMBRE: Estacionamiento Rivadavia");
-        Estacionamientos[1].setHorarios("HORARIOS: Lun-Dom de 8hs a 19hs");
-        Estacionamientos[1].setTarifaEstacionamiento("TARIFA: $20/hs");
+        Estacionamientos[1].setHorarios("HORARIOS: Lun-Dom de 7hs a 21hs");
+        Estacionamientos[1].setTarifaEstacionamiento("TARIFA: $15/hs");
         Estacionamientos[1].setPosicionEstacionamiento(new LatLng(-31.639896, -60.702384));
-
+        Estacionamientos[1].setTelefono("4561234");
+        Estacionamientos[1].setEsTechado(false);
+        Estacionamientos[1].setAceptaTarjetas(false);
+        Estacionamientos[1].setCapacidad(45);
 
         Estacionamientos[2] = new Estacionamiento();
         Estacionamientos[2].setDireccionEstacionamiento("DIRECCIÓN: La Rioja y 25 de Mayo");
@@ -70,7 +77,10 @@ public class ListarLugaresActivity extends AppCompatActivity implements View.OnC
         Estacionamientos[2].setHorarios("HORARIOS: Lun-Vie abierto las 24hs, Sáb de 9hs a 18hs");
         Estacionamientos[2].setTarifaEstacionamiento("TARIFA: Te cobramos dos huevos");
         Estacionamientos[2].setPosicionEstacionamiento(new LatLng(-31.646182, -60.705633));
-
+        Estacionamientos[2].setTelefono("4321987");
+        Estacionamientos[2].setEsTechado(true);
+        Estacionamientos[2].setAceptaTarjetas(false);
+        Estacionamientos[2].setCapacidad(60);
     }
 
 

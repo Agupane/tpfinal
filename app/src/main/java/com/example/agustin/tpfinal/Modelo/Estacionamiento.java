@@ -18,6 +18,7 @@ public class Estacionamiento {
     private boolean esTechado;
     private boolean aceptaTarjetas;
     private Boolean eliminado;
+    private int capacidad;
 
     public void Estacionamiento(){
         this.eliminado = false;
@@ -101,5 +102,13 @@ public class Estacionamiento {
 
     public void setAceptaTarjetas(boolean aceptaTarjetas) {
         this.aceptaTarjetas = aceptaTarjetas;
+    }
+
+    public void setCapacidad(int cap){
+        this.capacidad = cap;
+    }
+
+    public int getCapacidad(){
+        return this.capacidad;
     }
 }
