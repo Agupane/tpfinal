@@ -2,6 +2,8 @@ package com.example.agustin.tpfinal.Modelo;
 
 import android.location.Address;
 import android.location.Location;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -112,4 +114,12 @@ public class UbicacionVehiculoEstacionado {
         }
         return "Vehiculo";
     }
+    /**
+     * USO LA HORA DE INGRESO COMO ID IDENTIFICADOR DE ESE ESTACIONAMIENTO
+     */
+    public Integer getId(){
+        return horaIngreso.intValue();
+    }
+
+
 }

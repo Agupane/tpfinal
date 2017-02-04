@@ -3,6 +3,7 @@
     package="com.example.agustin.tpfinal">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -50,6 +51,7 @@
             android:exported="false">
             <service android:name=".GeofenceTransitionsIntentService"/>
         </service>
+        <receiver android:name=".Utils.AlarmEstacionamientoReceiver" />
     </application>
 
 </manifest>

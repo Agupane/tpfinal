@@ -1,6 +1,8 @@
 package com.example.agustin.tpfinal.VistasAndControllers;
 
 import android.Manifest;
+import android.annotation.TargetApi;
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,13 +11,16 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.util.TimeUtils;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -36,6 +41,7 @@ import com.example.agustin.tpfinal.Modelo.Estacionamiento;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
 import com.example.agustin.tpfinal.R;
 import com.example.agustin.tpfinal.Utils.AddressResultReceiver;
+import com.example.agustin.tpfinal.Utils.AlarmEstacionamientoReceiver;
 import com.example.agustin.tpfinal.Utils.ConstantsAddresses;
 import com.example.agustin.tpfinal.Utils.ConstantsEstacionamientoService;
 import com.example.agustin.tpfinal.Utils.FetchAddressIntentService;
@@ -58,10 +64,12 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
-public class MapaActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback, View.OnClickListener {
+public class MapaActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
     /** Mapa de google a mostrar */
     private GoogleMap mapa;
     /** Cliente de api de google para utilizar el servicio de localizacion */
@@ -102,6 +110,20 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     boolean doubleBackToExitPressedOnce = false;
     /** Lista de Estacionamientos para marcar en el mapa */
     private Estacionamiento[] Estacionamientos;
+    /** Bandera que determina si se pidieron o no permisos */
+    private Boolean flagPermisoPedido = false;
+    /** Codigo de request de permiso para cargar el mapa*/
+    private static final int PERMISO_FINE_LOCATION_PARA_MAPA_READY = 1;
+    /** Codigo de request de permiso para conectarse al servicio de localizacion */
+    private static final int PERMISO_FINE_LOCATION_PARA_LOCATION_SERVICE = 2;
+    /** Codigo de request de permiso para crear geofences */
+    private static final int PERMISO_FINE_LOCATION_PARA_GEOFENCING = 3;
+    /** Intent auxiliar que se utiliza al cargar el mapa */
+    private Intent intentAuxMapa;
+    /** Tiempo para que suene la alarma luego de configurada */
+    private static final Long TIEMPO_CONFIGURADO_ALARMA = Long.valueOf(1000*60*60); // Suena luego de una hora
+    /** Lista de marcadores en el mapa */
+    public static Map<String,Marker> mapaMarcadores;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,7 +141,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener((View.OnClickListener) this);
-
+        mapaMarcadores = new HashMap<>();
         llenarEstacionamientos();
 
         // Create an instance of GoogleAPIClient.
@@ -235,36 +257,42 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mapa = googleMap;
-        mapa.setMyLocationEnabled(true);
-        mapa.setOnMapLongClickListener(this);
-        mapa.setOnInfoWindowClickListener(this);
-        mapa.setInfoWindowAdapter(ventanaInfo);
-        marcarEstacionamientos();
-        estCalle=cargarUltimoEstacionamiento(ID_USUARIO_ACTUAL);
+        this.mapa = googleMap;
+        this.intentAuxMapa = getIntent();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            //  return;
+            pedirPermisosUbicacion(PERMISO_FINE_LOCATION_PARA_MAPA_READY);
+        }
+        else{
+            cargarMapa();
         }
 
-        /** TODO refactorizar: si viene desde un intent (boton Ver Mapa en el Listado...) enfoca en ese punto */
-        String intentExtraBandera = getIntent().getStringExtra("bandera");
-        if(intentExtraBandera!=null && intentExtraBandera.equals("VER")){
-            Bundle bundle = getIntent().getParcelableExtra("bundle");
-            LatLng posicion = bundle.getParcelable("latlong");
-            Location aux = new Location(ubicacionActual);
-            aux.setLatitude(posicion.latitude);
-            aux.setLongitude(posicion.longitude);
-            enfocarMapaEnUbicacion(aux);
-        }
-        else enfocarMapaEnUbicacion(ubicacionActual);
+    }
 
+    /**
+     * Accion que se ejecuta luego de que el mapa de google esta listo, se extrae en este metodo
+     * debido a que el codigo se repite si es necesario pedir permisos
+==
+     */
+    private void cargarMapa(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mapa.setMyLocationEnabled(true);
+            mapa.setOnMapLongClickListener(this);
+            mapa.setOnInfoWindowClickListener(this);
+            mapa.setInfoWindowAdapter(ventanaInfo);
+            marcarEstacionamientos();
+            estCalle=cargarUltimoEstacionamiento(ID_USUARIO_ACTUAL);
+            /** TODO refactorizar: si viene desde un intent (boton Ver Mapa en el Listado...) enfoca en ese punto */
+            String intentExtraBandera = intentAuxMapa.getStringExtra("bandera");
+            if(intentExtraBandera!=null && intentExtraBandera.equals("VER")){
+                Bundle bundle = getIntent().getParcelableExtra("bundle");
+                LatLng posicion = bundle.getParcelable("latlong");
+                Location aux = new Location(ubicacionActual);
+                aux.setLatitude(posicion.latitude);
+                aux.setLongitude(posicion.longitude);
+                enfocarMapaEnUbicacion(aux);
+            }
+            else enfocarMapaEnUbicacion(ubicacionActual);
+        }
     }
 
     @Override
@@ -297,29 +325,30 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    /** Se conecta con location services de google */
+
     public void onConnected(@Nullable Bundle bundle) {
         /** Pido permisos de ubicacion */
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Log.v("PERMISOS ","No hay permisos para obtener la ubicacion actual");
+            pedirPermisosUbicacion(PERMISO_FINE_LOCATION_PARA_LOCATION_SERVICE);
         }
         /** Tengo permisos */
         else{
-            Log.v("PERMISOS","Permisos para obtener ubicacion concedidos, obteniendo ubicacion y generando mapa...");
+            conectarALocationServices();
+        }
+    }
+
+    /**
+     *  Se conecta con location services de google luego de haber solicitado permisos
+     */
+    private void conectarALocationServices(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             ubicacionActual = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
             mapFragment.getMapAsync(this);
             if (ubicacionActual != null) {
                 // Determine whether a Geocoder is available.
                 if (!Geocoder.isPresent()) {
-                    Log.v("LOCALIZADOR", getResources().getString(R.string.no_geocoder_available));
+                    Log.v(TAG, getResources().getString(R.string.no_geocoder_available));
                 }
                 if (mAddressRequested) {
                     startAddressFetchService();
@@ -365,7 +394,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         /* Agrego el objeto estacionamiento al marcador */
         marker.setTag(estacionamiento);
 
-        /* Objeto que permite generar eventos de aproximacion al radio del marcador */
+         /* Objeto que permite generar eventos de aproximacion al radio del marcador */
         Geofence.Builder geof = new Geofence.Builder();
         geof.setRequestId(marker.getId())
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_DWELL)
@@ -375,19 +404,40 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 ;
         mGeofenceList.add(geof.build());
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            pedirPermisos();
+            pedirPermisosUbicacion(PERMISO_FINE_LOCATION_PARA_GEOFENCING);
         }
         else
         {
+            agregarGeofence();
+        }
+        return marker;
+    }
+
+    /** Una vez recibido permisos de ubicacion, agrega las geofences creadas al mapa */
+    private void agregarGeofence(){
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             LocationServices.GeofencingApi.addGeofences(
                     mGoogleApiClient,
                     getGeofencingRequest(),
                     getGeofencePendingIntent()
             ).setResultCallback(this);
         }
+    }
 
-
-        return marker;
+    /**
+     * Asocia una alarma al objeto estacionamiento y la inicializa
+     * Permite al usuario recordar que dejo el auto estacionado mediante una notificacion cada X Tiempo
+     * @param markerEstacionamiento
+     */
+    private void agregarAlarma(Marker markerEstacionamiento){
+        UbicacionVehiculoEstacionado ubicacionVehiculo = (UbicacionVehiculoEstacionado) markerEstacionamiento.getTag();
+        AlarmManager alarmManager = (AlarmManager) this.getSystemService(this.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmEstacionamientoReceiver.class);
+        intent.putExtra("idMarcador",markerEstacionamiento.getId());
+        Integer idPendingIntent = ubicacionVehiculo.getId();
+        PendingIntent pi = PendingIntent.getBroadcast(this,idPendingIntent,intent,0);
+        //alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,TIEMPO_CONFIGURADO_ALARMA,DURACION_REPETICION_ALARMA,pi);
+        alarmManager.set(AlarmManager.RTC_WAKEUP,TIEMPO_CONFIGURADO_ALARMA,pi);
     }
 
 
@@ -455,6 +505,10 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
             msg = getResources().getString(R.string.parkLoggerEstacionamientoExitoso);
             Toast.makeText(this,msg,Toast.LENGTH_LONG);
             markerUltimoEstacionamiento = agregarMarcadorEstacionamiento(estCalle);
+            /* Agrego el marcador a la lista de marcadores */
+            mapaMarcadores.put(markerUltimoEstacionamiento.getId(),markerUltimoEstacionamiento);
+            /* Agrego la alarma que se asocia al estacionamiento del usuario */
+            agregarAlarma(markerUltimoEstacionamiento);
             Log.v(TAG,msg);
             persistirUbicacion(estCalle);
         }
@@ -584,13 +638,6 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         Log.v(TAG,msg);
         Double latitude = marcadorDestino.getPosition().latitude;
         Double longitude = marcadorDestino.getPosition().longitude;
-        /*
-        Intent navigation = new Intent(Intent.ACTION_VIEW, Uri
-                .parse("http://maps.google.com/maps?saddr="
-                        + Constants.latitude + ","
-                        + Constants.longitude + "&daddr="
-                        + latitude + "," + longitude));
-                        */
         Intent navigation = new Intent(Intent.ACTION_VIEW, Uri
                 .parse("http://maps.google.com/maps?saddr="
                         + "&daddr="
@@ -624,11 +671,39 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         builder.addGeofences(mGeofenceList);
         return builder.build();
     }
-
-    /** TODO - Implementar
+    /*
      * Pide permisos para acceder a la ubicacion mediante un mensaje de usuario
      */
-    private void pedirPermisos(){}
+    private void pedirPermisosUbicacion(final Integer idSolicitantePermiso){
+        String msg;
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            msg = getResources().getString(R.string.tituloSolicitudPermisos);
+            builder.setTitle(msg);
+            builder.setPositiveButton(android.R.string.ok, null);
+            msg = getResources().getString(R.string.mensajeSolicitudPermisos);
+            builder.setMessage(msg);
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @TargetApi(Build.VERSION_CODES.M)
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    flagPermisoPedido=true;
+                    requestPermissions(
+                            new String[]
+                                    {Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION}
+                            , idSolicitantePermiso);
+                }
+            });
+            builder.show();
+        }
+        else {
+            flagPermisoPedido=true;
+            ActivityCompat.requestPermissions(this,
+                    new String[]
+                            {Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION}
+                    , idSolicitantePermiso);
+        }
+    }
 
     @Override
     public void onResult(@NonNull Result result) {
@@ -646,11 +721,14 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public void onBackPressed() {
         //Checking for fragment count on backstack
+        String msg;
         if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportFragmentManager().popBackStack();
-        } else if (!doubleBackToExitPressedOnce) {
+        }
+        else if (!doubleBackToExitPressedOnce) {
             this.doubleBackToExitPressedOnce = true;
-            Toast.makeText(this,"Presione ATRAS otra vez para salir", Toast.LENGTH_SHORT).show();
+            msg = getResources().getString(R.string.presionarAtrasParaSalir);
+            Toast.makeText(this,msg, Toast.LENGTH_SHORT).show();
 
             new Handler().postDelayed(new Runnable() {
 
@@ -659,7 +737,8 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                     doubleBackToExitPressedOnce = false;
                 }
             }, 2000);
-        } else {
+        }
+        else {
             super.onBackPressed();
             return;
         }
@@ -705,5 +784,52 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 .position(Estacionamientos[2].getPosicionEstacionamiento()) //Pongo el lugar
                 .title(Estacionamientos[2].getNombreEstacionamiento())) //Le meto titulo
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));
+    }
+
+    @Override
+    /** Aca se devuelve el resultado si el usuario decidio dar o no los permisos */
+    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+        String msg;
+        switch (requestCode) {
+            case PERMISO_FINE_LOCATION_PARA_MAPA_READY: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    msg = getResources().getString(R.string.permissionLocationObtenido);
+                    Log.v(TAG,msg);
+                    cargarMapa();
+                }
+                else {
+                    msg = getResources().getString(R.string.permissionLocationNoObtenido);
+                    Log.v(TAG,msg);
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+            case PERMISO_FINE_LOCATION_PARA_LOCATION_SERVICE:{
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    msg = getResources().getString(R.string.permissionLocationObtenido);
+                    Log.v(TAG,msg);
+                    conectarALocationServices();
+                }
+                else {
+                    msg = getResources().getString(R.string.permissionLocationNoObtenido);
+                    Log.v(TAG,msg);
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
+            case PERMISO_FINE_LOCATION_PARA_GEOFENCING:{
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    msg = getResources().getString(R.string.permissionLocationObtenido);
+                    Log.v(TAG,msg);
+                    agregarGeofence();
+                }
+                else {
+                    msg = getResources().getString(R.string.permissionLocationNoObtenido);
+                    Log.v(TAG,msg);
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                }
+                break;
+            }
+        }
     }
 }

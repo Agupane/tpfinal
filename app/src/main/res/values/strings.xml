@@ -52,6 +52,11 @@
     <string name="jsonDbHelperBDNoInstanciada">Se produjo un error al instanciar la base de datos JSON.</string>
     <string name="jsonDbHelperBDExistente">La base de datos ya existe, no se realizaron modificaciones.</string>
 
+    <string name="permissionLocationObtenido">Se obtuvieron con exito los permisos de location</string>
+    <string name="permissionLocationNoObtenido">No se han obtenido los permisos necesarios de ubicacion.</string>
+
+    <string name="alarmEstacionamientoGenerada">Se produjo una alarma asociada a un estacionamiento.</string>
+
     <!-- Strings de interfaz de usuario -->
     <string name="titMarcadorEstacionamiento">Ubicacion actual del vehiculo</string>
     <string name="action_estacionar">Estacionar aca</string>
@@ -64,5 +69,7 @@
     <string name="tvInfoEstacionamientoCiudad">CIUDAD DEFAULT 123</string>
     <string name="btnCancelar">Cancelar</string>
     <string name="errorProducidoIntenteNuevamente">Se produjo un error al procesar su solicitud, por favor intente nuevamente.</string>
-
+    <string name="tituloSolicitudPermisos">Permisos de requeridos</string>
+    <string name="mensajeSolicitudPermisos">Para poder continuar, es necesario solicitar un conjunto de permisos, desea hacerlo?</string>
+    <string name="presionarAtrasParaSalir">Presione ATRAS otra vez para salir.</string>
 </resources>
