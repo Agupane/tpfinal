@@ -29,7 +29,7 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
         idMarcador = intent.getStringExtra("idMarcador");
         marcadorEstacionamiento = mapaMarcadores.get(idMarcador);
         ubicacionEstacionamiento = (UbicacionVehiculoEstacionado) marcadorEstacionamiento.getTag();
-        v
+        /** TODO - GENERAR NOTIFICACION */ 
         msg = context.getResources().getString(R.string.alarmEstacionamientoGenerada);
         Log.d(TAG,msg);
     }
