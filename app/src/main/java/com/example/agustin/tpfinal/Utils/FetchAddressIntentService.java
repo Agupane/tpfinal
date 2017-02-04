@@ -8,6 +8,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.os.ResultReceiver;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.agustin.tpfinal.R;
 
@@ -50,20 +51,22 @@ public class FetchAddressIntentService extends IntentService {
             }
             catch (IOException ioException) {
                 // Catch network or other I/O problems.
+                String msg = this.getResources().getString(R.string.no_geocoder_avaiable_msg);
+                Toast.makeText(this,msg,Toast.LENGTH_LONG);
                 errorMessage = getString(R.string.service_not_available);
-                Log.e(TAG, errorMessage, ioException);
+                Log.v(TAG, errorMessage, ioException);
             }
             catch (IllegalArgumentException illegalArgumentException) {
                 // Catch invalid latitude or longitude values.
                 errorMessage = getString(R.string.invalid_lat_long_used);
-                Log.e(TAG, errorMessage + ". " +
+                Log.v(TAG, errorMessage + ". " +
                         "Latitude = " + latitude +
                         ", Longitude = " +
                         longitude, illegalArgumentException);
             }
-            if (addresses.size()  == 0) {
+            if (addresses == null || addresses.size()  == 0) {
                 errorMessage = getString(R.string.no_address_found);
-                Log.e(TAG, errorMessage);
+                Log.v(TAG, errorMessage);
                 deliverResultToReceiver(ConstantsAddresses.FAILURE_RESULT, errorMessage);
             }
             else {

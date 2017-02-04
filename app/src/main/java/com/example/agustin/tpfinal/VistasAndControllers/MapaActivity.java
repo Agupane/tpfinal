@@ -44,6 +44,7 @@ import com.example.agustin.tpfinal.Utils.AddressResultReceiver;
 import com.example.agustin.tpfinal.Utils.AlarmEstacionamientoReceiver;
 import com.example.agustin.tpfinal.Utils.ConstantsAddresses;
 import com.example.agustin.tpfinal.Utils.ConstantsEstacionamientoService;
+import com.example.agustin.tpfinal.Utils.ConstantsNotificaciones;
 import com.example.agustin.tpfinal.Utils.FetchAddressIntentService;
 import com.example.agustin.tpfinal.Utils.GeofenceTransitionsIntentService;
 import com.google.android.gms.common.ConnectionResult;
@@ -120,8 +121,6 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     private static final int PERMISO_FINE_LOCATION_PARA_GEOFENCING = 3;
     /** Intent auxiliar que se utiliza al cargar el mapa */
     private Intent intentAuxMapa;
-    /** Tiempo para que suene la alarma luego de configurada */
-    private static final Long TIEMPO_CONFIGURADO_ALARMA = Long.valueOf(1000*60*60); // Suena luego de una hora
     /** Lista de marcadores en el mapa */
     public static Map<String,Marker> mapaMarcadores;
 
@@ -434,10 +433,11 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         AlarmManager alarmManager = (AlarmManager) this.getSystemService(this.ALARM_SERVICE);
         Intent intent = new Intent(this, AlarmEstacionamientoReceiver.class);
         intent.putExtra("idMarcador",markerEstacionamiento.getId());
+        intent.setAction(String.valueOf(ConstantsNotificaciones.ACCION_GENERAR_ALARMA));
         Integer idPendingIntent = ubicacionVehiculo.getId();
         PendingIntent pi = PendingIntent.getBroadcast(this,idPendingIntent,intent,0);
         //alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,TIEMPO_CONFIGURADO_ALARMA,DURACION_REPETICION_ALARMA,pi);
-        alarmManager.set(AlarmManager.RTC_WAKEUP,TIEMPO_CONFIGURADO_ALARMA,pi);
+        alarmManager.set(AlarmManager.RTC_WAKEUP,ConstantsNotificaciones.TIEMPO_CONFIGURADO_ALARMA,pi);
     }
 
 
@@ -614,7 +614,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
      * Marca la salida del estacionamiento y elimina el marcador
      * @param marcadorSalida
      */
-    private void marcarSalidaEstacionamiento(Marker marcadorSalida){
+    public void marcarSalidaEstacionamiento(Marker marcadorSalida){
         String msg = getResources().getString(R.string.parkLoggerInicioSalidaEstacionamiento);
         Log.v(TAG,msg);
         UbicacionVehiculoEstacionado ubicacionVehiculo = (UbicacionVehiculoEstacionado) marcadorSalida.getTag();

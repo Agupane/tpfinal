@@ -14,6 +14,7 @@
     <string name="no_address_found">No se encontraron direcciones asociadas a esa ubicacion.</string>
     <string name="address_found">La direccion asociada a esa ubicacion se encontro exitosamente.</string>
     <string name="no_geocoder_available">El geocoder no esta disponible actualmente.</string>
+    <string name="no_geocoder_avaiable_msg">El sistema de ubicacion no se encuentra disponible actualmente, intente mas tarde.</string>
     <string name="ubicacionActualEncontrada">Ubicacion encontrada, enfocando mapa en coordenadas.</string>
     <string name="ubicacionActualInexistente">La ubicacion es inexistente o nula y no se puede enfocar el mapa.</string>
     <string name="parkLoggerEstacionamientoExitoso">Se realizo un estacionamiento exitoso, marcando el punto en el mapa.</string>
@@ -56,6 +57,7 @@
     <string name="permissionLocationNoObtenido">No se han obtenido los permisos necesarios de ubicacion.</string>
 
     <string name="alarmEstacionamientoGenerada">Se produjo una alarma asociada a un estacionamiento.</string>
+    <string name="alarmEstacionamientoPospuesta">Se pospuso la alarma asociada al estacionamiento.</string>
 
     <!-- Strings de interfaz de usuario -->
     <string name="titMarcadorEstacionamiento">Ubicacion actual del vehiculo</string>
@@ -72,4 +74,9 @@
     <string name="tituloSolicitudPermisos">Permisos de requeridos</string>
     <string name="mensajeSolicitudPermisos">Para poder continuar, es necesario solicitar un conjunto de permisos, desea hacerlo?</string>
     <string name="presionarAtrasParaSalir">Presione ATRAS otra vez para salir.</string>
+    <string name="notificacionAlarmaEstTitulo">Recordatorio estacionamiento</string>
+    <string name="notificacionAlarmaEstTexto">Su auto esta estacionado.</string>
+    <string name="btnIgnorarAlarma">Ignorar</string>
+    <string name="btnSalirEstacionamiento">Salir</string>
+
 </resources>
