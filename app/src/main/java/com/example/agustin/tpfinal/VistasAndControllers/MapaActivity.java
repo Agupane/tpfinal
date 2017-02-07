@@ -44,6 +44,7 @@ import com.example.agustin.tpfinal.Utils.AddressResultReceiver;
 import com.example.agustin.tpfinal.Utils.AlarmEstacionamientoReceiver;
 import com.example.agustin.tpfinal.Utils.ConstantsAddresses;
 import com.example.agustin.tpfinal.Utils.ConstantsEstacionamientoService;
+import com.example.agustin.tpfinal.Utils.ConstantsMenuNavegacion;
 import com.example.agustin.tpfinal.Utils.ConstantsNotificaciones;
 import com.example.agustin.tpfinal.Utils.FetchAddressIntentService;
 import com.example.agustin.tpfinal.Utils.GeofenceTransitionsIntentService;
@@ -64,8 +65,10 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +96,8 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     private FetchAddressIntentService buscarCallesService;
     /** Tag usado por el LOG    */
     private static final String TAG = "ServicioUbicacion";
+    /** Tag usado por el LOG  representando al menu   */
+    private static final String TAG_MENU = "Menu_Navigation";
     /** Dao que almacena ubicacion de vehiculos estacionados */
     private static final UbicacionVehiculoEstacionadoDAO ubicacionVehiculoDAO = UbicacionVehiculoEstacionadoDAO.getInstance();
     /** Helper que administra la base de datos JSON LOCAL */
@@ -123,6 +128,15 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     private Intent intentAuxMapa;
     /** Lista de marcadores en el mapa */
     public static Map<String,Marker> mapaMarcadores;
+    /** Instancia actual usada por el alarm receiver */
+    public static MapaActivity mapaActivityInstance;
+    /** Objeto que representa el layout de navegation lateral */
+    private static NavigationView navigationView;
+    /** Objeto que representa el menu de navegacion lateral */
+    private static Menu menuLateral;
+    /** Objeto que representa el cuadro de dialogo que brinda informacion en caso de que el vehiculo se encuentre estacionado X Tiempo */
+    private static AlertDialog dialogInfoVehiculoEstacionado;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,8 +149,9 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        menuLateral = navigationView.getMenu();
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener((View.OnClickListener) this);
@@ -156,6 +171,8 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         mGoogleApiClient.connect();
         mResultReceiver = new AddressResultReceiver(new Handler());
         mResultReceiver.setReceiver(this);
+        mapaActivityInstance = this;
+
     }
 
     @Override
@@ -214,17 +231,22 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         int id = item.getItemId();
+        String estacionarAqui = getResources().getString(R.string.menuOptEstacionarAqui);
+        String dondeEstacione = getResources().getString(R.string.menuOptDondeEstacione);
         switch (id) {
             case R.id.nav_estac: {
-                if(item.getTitle().equals("Estacionar aquí")){
-                    Log.v("OPCIONES_USUARIO: ","Estacionando en ubicacion actual");
+                /** Se ejecuta si el vehiculo no esta estacionado */
+                if(item.getTitle().equals(estacionarAqui) && lugarEstacionamientoGuardado == false){
+                    Log.v(TAG_MENU,"Estacionando en ubicacion actual");
                     estacionarEnPosicionActual();
                     this.lugarEstacionamientoGuardado = true;
-                    item.setTitle("Donde estacioné?"); //para cambiar dinamicamente el texto
+                    item.setTitle(dondeEstacione);
+                    menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(true);
                 }
                 else {
-                    /** TODO cambiar dinámicamente este menú si se puede, entre "Estacionar aca" e "Ir a donde estacioné" */
-                    Log.v("OPCIONES_USUARIO: ","Recordando ubicación guardada");
+                    /** Se ejecuta si el vehiculo se encuentra actualmente estacionado */
+                    if(item.getTitle().equals(dondeEstacione) && lugarEstacionamientoGuardado == true)
+                    Log.v(TAG_MENU,"Recordando ubicación guardada");
                     //Creo una Location auxiliar con las coordenadas de la ubicacion guardada y enfoco el mapa ahi
                     Location lugarEstacionado = new Location(ubicacionActual);
                     lugarEstacionado.setLatitude(estCalle.getCoordenadas().latitude);
@@ -234,15 +256,14 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 break;
             }
             case R.id.nav_clean: {
-                Log.v("OPCIONES_USUARIO: ","Borrando ubicación guardada");
-                this.marcarSalidaEstacionamiento(markerUltimoEstacionamiento);
-                markerUltimoEstacionamiento=null;
-                estCalle=null;
-                this.lugarEstacionamientoGuardado = false;
-                NavigationView nv = (NavigationView) findViewById(R.id.nav_view);
-                Menu m = nv.getMenu();
-                (m.getItem(1)).setTitle("Estacionar aquí");
-                //((MenuItem) findViewById(R.id.nav_estac)).setTitle("Estacionar aquí");
+                if(this.lugarEstacionamientoGuardado == true) {
+                    Log.v(TAG_MENU, "Borrando ubicación guardada");
+                    this.marcarSalidaEstacionamiento(markerUltimoEstacionamiento);
+                }
+                break;
+            }
+            case R.id.nav_alarma:{
+                /** TODO - IMPLEMENTAR FUNCIONAMIENTO DEL BOTON DE ALARMA */
                 break;
             }
             default: {
@@ -409,6 +430,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         {
             agregarGeofence();
         }
+        mapaMarcadores.put(marker.getId(),marker);
         return marker;
     }
 
@@ -424,8 +446,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Asocia una alarma al objeto estacionamiento y la inicializa
-     * Permite al usuario recordar que dejo el auto estacionado mediante una notificacion cada X Tiempo
+     * Elimina una alarma al objeto estacionamiento
      * @param markerEstacionamiento
      */
     private void agregarAlarma(Marker markerEstacionamiento){
@@ -440,7 +461,21 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         alarmManager.set(AlarmManager.RTC_WAKEUP,ConstantsNotificaciones.TIEMPO_CONFIGURADO_ALARMA,pi);
     }
 
-
+    /**
+     * Asocia una alarma al objeto estacionamiento y la inicializa
+     * Permite al usuario recordar que dejo el auto estacionado mediante una notificacion cada X Tiempo
+     * @param markerEstacionamiento
+     */
+    private void eliminarAlarma(Marker markerEstacionamiento){
+        UbicacionVehiculoEstacionado ubicacionVehiculo = (UbicacionVehiculoEstacionado) markerEstacionamiento.getTag();
+        AlarmManager alarmManager = (AlarmManager) this.getSystemService(this.ALARM_SERVICE);
+        Intent intent = new Intent(this, AlarmEstacionamientoReceiver.class);
+      //  intent.putExtra("idMarcador",markerEstacionamiento.getId());
+      //  intent.setAction(String.valueOf(ConstantsNotificaciones.ACCION_GENERAR_ALARMA));
+        Integer idPendingIntent = ubicacionVehiculo.getId();
+        PendingIntent pi = PendingIntent.getBroadcast(this,idPendingIntent,intent,0);
+        alarmManager.cancel(pi);
+    }
     @Override
     /**
      * Evento que aparece cuando se hace clik sobre el info windows de un marcador
@@ -456,12 +491,6 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         LayoutInflater linf = LayoutInflater.from(this);
         final View inflator = linf.inflate(R.layout.alert_distancia_busqueda, null);
         AlertDialog.Builder builder= new AlertDialog.Builder(this);
-        //Configurar las características
-        /*
-            builder.setView(inflator)
-                    .setMessage("Desea marcar todos lo reclamos que esten a X Distancia?");
-            final EditText etCantKm = (EditText) inflator.findViewById(R.id.etDistanciaReclamo);
-*/
 
             builder.setPositiveButton( /** Listener de la opcion de navegar */
                     msgNavegar, new DialogInterface.OnClickListener() {
@@ -525,9 +554,9 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
             ubicacionVehiculoDAO.guardarOActualizarUbicacionVehiculo(ubicacionEstacionado,this);
         }
         catch (UbicacionVehiculoException e) {
-            /** TODO IMPLEMENTAR TRATAMIENTO */
-            Toast.makeText(this,"Error producido",Toast.LENGTH_SHORT);
-            e.printStackTrace();
+            msg = getResources().getString(R.string.errorProducidoIntenteNuevamente);
+            Toast.makeText(this,msg,Toast.LENGTH_SHORT);
+           // e.printStackTrace();
         }
     }
 
@@ -597,6 +626,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     /** Permite cargar el ultimo estacionamiento en el mapa del usuario */
     public UbicacionVehiculoEstacionado cargarUltimoEstacionamiento(int idUsuario){
         UbicacionVehiculoEstacionado ultimoEst = ubicacionVehiculoDAO.getUltimaUbicacionVehiculo(idUsuario,this);
+        String msg;
         if(ultimoEst !=null) {
             /* Si no hay hora de egreso es porque no se produjo, y por lo tanto lo agrego como ubicacion del vehiculo */
             if(ultimoEst.getHoraEgreso() == null ){
@@ -604,10 +634,62 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 de ingreso sea chico, si paso mucho tiempo significa que se olvido de marcar el egreso y por lo tanto habria
                 que marcar el egreso y no poner el marcador
                 */
-                agregarMarcadorEstacionamiento(ultimoEst);
+                markerUltimoEstacionamiento = agregarMarcadorEstacionamiento(ultimoEst);
+               // agregarAlarma(markerUltimoEstacionamiento);
+                generarVentanaRecordatorioEstacionamiento(markerUltimoEstacionamiento);
+                this.lugarEstacionamientoGuardado = true;
+                msg = getResources().getString(R.string.menuOptDondeEstacione);
+                menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msg);
+                menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setChecked(true);
             }
         }
         return ultimoEst;
+    }
+
+    /**
+     * Genera una ventana de informacion alertando de que existia un vehiculo previamente estacionado cuando se abrio la aplicacion
+     * @param markerUltimoEstacionamiento
+     */
+    private void generarVentanaRecordatorioEstacionamiento(final Marker markerUltimoEstacionamiento){
+        final UbicacionVehiculoEstacionado ubicacionEstacionamiento = (UbicacionVehiculoEstacionado) markerUltimoEstacionamiento.getTag();
+        String titulo = this.getResources().getString(R.string.notificacionAlarmaEstTitulo);
+        String tiempoDeIngreso;
+        StringBuilder texto = new StringBuilder();
+        texto.append("Su vehiculo se encuentra estacionado desde las ");
+        Date date = new Date(ubicacionEstacionamiento.getHoraIngreso());
+        tiempoDeIngreso = new SimpleDateFormat("HH:mm").format(date);
+        texto.append(tiempoDeIngreso);
+        texto.append(" , desea marcar la salida del estacionamiento?");
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(titulo)
+                .setMessage(texto)
+        .setPositiveButton("Si", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String estacionarAqui = getResources().getString(R.string.menuOptEstacionarAqui);
+                marcarSalidaEstacionamiento(markerUltimoEstacionamiento);
+                menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(estacionarAqui);
+            }
+        })
+        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                agregarAlarma(markerUltimoEstacionamiento);
+            }
+        })
+        .setNeutralButton("Ir al estacionamiento", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Location lugarEstacionado = new Location(ubicacionActual);
+                lugarEstacionado.setLatitude(ubicacionEstacionamiento.getCoordenadas().latitude);
+                lugarEstacionado.setLongitude(ubicacionEstacionamiento.getCoordenadas().longitude);
+                enfocarMapaEnUbicacion(lugarEstacionado);
+            }
+        });
+
+        dialogInfoVehiculoEstacionado = builder.create();
+        dialogInfoVehiculoEstacionado.show();
     }
 
     /**
@@ -617,9 +699,13 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     public void marcarSalidaEstacionamiento(Marker marcadorSalida){
         String msg = getResources().getString(R.string.parkLoggerInicioSalidaEstacionamiento);
         Log.v(TAG,msg);
+        String estacionarAqui = getResources().getString(R.string.menuOptEstacionarAqui);
+        String dondeEstacione = getResources().getString(R.string.menuOptDondeEstacione);
         UbicacionVehiculoEstacionado ubicacionVehiculo = (UbicacionVehiculoEstacionado) marcadorSalida.getTag();
         ubicacionVehiculo.setHoraEgreso(System.currentTimeMillis());
         try{
+            /* Elimino la alarma que se asocia al estacionamiento del usuario */
+            eliminarAlarma(markerUltimoEstacionamiento);
             actualizarUbicacionPersistida(ubicacionVehiculo);
             marcadorSalida.remove();
         }
@@ -627,6 +713,11 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
             msg = getResources().getString(R.string.errorProducidoIntenteNuevamente);
             Toast.makeText(this, msg, Toast.LENGTH_LONG);
         }
+        markerUltimoEstacionamiento = null;
+        estCalle = null;
+        this.lugarEstacionamientoGuardado = false;
+        (menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI)).setTitle(estacionarAqui);
+        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(false);
     }
 
     /**

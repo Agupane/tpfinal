@@ -68,7 +68,7 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
     /**
      * Genera una notificacion
      * TODO - ACOMODAR PARA GENERAR LA ALARMA PORQUE ES MUY CORTO (DEBERIA DE SER UNA HORA DESDE EL MOMENTO EN DONDE SE ESTACIONA O SE
-     * POSPONE LA ALARMA, MIRAR ESE NUMERO EN ConstansNotificaciones 
+     * POSPONE LA ALARMA, MIRAR ESE NUMERO EN ConstansNotificaciones
      */
     private void generarNotificacion(){
         String tiempoDeIngreso;
@@ -160,11 +160,13 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
      * Marca la salida de la ubicacion del estacionamiento
      */
     private void salirEstacionamiento(){
+        /*
         String msg = context.getResources().getString(R.string.parkLoggerInicioSalidaEstacionamiento);
         Log.v(TAG,msg);
         UbicacionVehiculoEstacionado ubicacionVehiculo = (UbicacionVehiculoEstacionado) markerEstacionamiento.getTag();
         ubicacionVehiculo.setHoraEgreso(System.currentTimeMillis());
         try{
+            eliminarAlarma(ubicacionVehiculo);
             actualizarUbicacionPersistida(ubicacionVehiculo);
             markerEstacionamiento.remove();
             mNotificationManager.cancel(idNotificacion);
@@ -174,6 +176,13 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
             msg = context.getResources().getString(R.string.errorProducidoIntenteNuevamente);
             Toast.makeText(context, msg, Toast.LENGTH_LONG);
         }
+        markerUltimoEstacionamiento = null;
+        estCalle = null;
+        this.lugarEstacionamientoGuardado = false;
+        (menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI)).setTitle(estacionarAqui);
+        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(false);
+        */
+        MapaActivity.mapaActivityInstance.marcarSalidaEstacionamiento(markerEstacionamiento);
     }
     /**
      * Actualiza la informacion en disco del objeto ubicacion vehiculo
@@ -183,5 +192,15 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
         String msg = context.getResources().getString(R.string.parkLoggerInicioActualizacionUbicacion);
         Log.v(TAG,msg);
         ubicacionVehiculoDAO.actualizarUbicacionVehiculoEstacionado(estCalle,context);
+    }
+
+    private void eliminarAlarma(UbicacionVehiculoEstacionado ubicacionVehiculo){
+        AlarmManager alarmManager = (AlarmManager) context.getSystemService(context.ALARM_SERVICE);
+        Intent intent = new Intent(context, AlarmEstacionamientoReceiver.class);
+        //  intent.putExtra("idMarcador",markerEstacionamiento.getId());
+        //  intent.setAction(String.valueOf(ConstantsNotificaciones.ACCION_GENERAR_ALARMA));
+        Integer idPendingIntent = ubicacionVehiculo.getId();
+        PendingIntent pi = PendingIntent.getBroadcast(context,idPendingIntent,intent,0);
+        alarmManager.cancel(pi);
     }
 }

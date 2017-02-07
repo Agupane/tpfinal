@@ -79,4 +79,8 @@
     <string name="btnIgnorarAlarma">Ignorar</string>
     <string name="btnSalirEstacionamiento">Salir</string>
 
+    <string name="menuOptEstacionarAqui">Estacionar aquí</string>
+    <string name="menuOptDondeEstacione">Donde estacioné?</string>
+
+
 </resources>
