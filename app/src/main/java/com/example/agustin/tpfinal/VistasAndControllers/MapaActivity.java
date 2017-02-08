@@ -309,12 +309,34 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 Location aux = new Location(ubicacionActual);
                 aux.setLatitude(posicion.latitude);
                 aux.setLongitude(posicion.longitude);
+
+                //Como la funcion buscar podria devolver null, hago un if para prevenir
+                Marker auxMarker = buscarMarker(posicion);
+                if(auxMarker!=null){
+                    auxMarker.showInfoWindow();
+
+                } else {
+                    addMarker(posicion,"Estacionamiento",R.drawable.marker_estacionamiento);
+                }
                 enfocarMapaEnUbicacion(aux);
             }
             else enfocarMapaEnUbicacion(ubicacionActual);
         }
     }
 
+    /**
+     *  Busca un Marker por su posicion dentro del Map-mapaMarcadores
+     * @param posicion
+     * @return retorna el Marker o Null, si no lo encuentra
+     */
+    private Marker buscarMarker(LatLng posicion){
+            for(Marker aux : mapaMarcadores.values()) {
+                if (aux.getPosition().equals(posicion)) {
+                    return aux;
+                }
+            }
+            return null;
+    }
     @Override
     public void onMapLongClick(LatLng latLng) {
         /*
@@ -397,7 +419,21 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         intent.putExtra(ConstantsAddresses.LOCATION_DATA_EXTRA, ubicacionActual);
         startService(intent);
     }
-
+    /**
+     * Aunque ya existe el addMarker, esto me parece lo hace mas rapido mas legible y lo agrega a una lista
+     *
+     * @param latLng Posicion
+     * @param title  Titulo
+     * @param idIcon id del icono que va a tener
+     */
+    private void addMarker(LatLng latLng, String title, int idIcon) {
+        Marker marker = mapa.addMarker(new MarkerOptions()
+                .position(latLng) //Pongo el lugar
+                .title(title));//Le meto titulo
+        marker.setIcon(BitmapDescriptorFactory.fromResource(idIcon));
+        marker.setVisible(true);
+        mapaMarcadores.put(marker.getId(),marker);
+    }
     /**
      * Agrega un marcador asociado al estacionamiento de una persona (la ubicacion donde estaciono)
      * A su vez agrega una geofence asociada al marcador
@@ -578,12 +614,21 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         if(location!=null){
             msg = getResources().getString(R.string.ubicacionActualEncontrada);
             Log.v(TAG,msg);
-            LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
+           /* LatLng target = new LatLng(location.getLatitude(), location.getLongitude());
             CameraPosition position = this.mapa.getCameraPosition();
             CameraPosition.Builder builder = new CameraPosition.Builder();
             builder.zoom(15);
             builder.target(target);
-            this.mapa.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));
+            this.mapa.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));*/
+            String msgToast = location.getLatitude() + ", " + location.getLongitude();
+
+            //Muevo la camara
+            mapa.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(),location.getLongitude())));
+
+            //Le doy zoom
+            mapa.animateCamera(CameraUpdateFactory.zoomTo(17f));
+            //TODO  Sacar el toast en un futuro
+            Toast.makeText(this, msgToast, Toast.LENGTH_LONG).show();
         }
         else{
             msg = getResources().getString(R.string.ubicacionActualInexistente);
@@ -863,18 +908,21 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void marcarEstacionamientos(){
-        mapa.addMarker((new MarkerOptions()
+        /*mapa.addMarker((new MarkerOptions()
                 .position(Estacionamientos[0].getPosicionEstacionamiento()) //Pongo el lugar
                 .title(Estacionamientos[0].getNombreEstacionamiento())) //Le meto titulo
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));
-        mapa.addMarker((new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));*/
+        addMarker(Estacionamientos[0].getPosicionEstacionamiento(),Estacionamientos[0].getNombreEstacionamiento(),R.drawable.marker_estacionamiento);
+        /*mapa.addMarker((new MarkerOptions()
                 .position(Estacionamientos[1].getPosicionEstacionamiento()) //Pongo el lugar
                 .title(Estacionamientos[1].getNombreEstacionamiento())) //Le meto titulo
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));
-        mapa.addMarker((new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));*/
+        addMarker(Estacionamientos[1].getPosicionEstacionamiento(),Estacionamientos[1].getNombreEstacionamiento(),R.drawable.marker_estacionamiento);
+        /*mapa.addMarker((new MarkerOptions()
                 .position(Estacionamientos[2].getPosicionEstacionamiento()) //Pongo el lugar
                 .title(Estacionamientos[2].getNombreEstacionamiento())) //Le meto titulo
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));*/
+        addMarker(Estacionamientos[2].getPosicionEstacionamiento(),Estacionamientos[2].getNombreEstacionamiento(),R.drawable.marker_estacionamiento);
     }
 
     @Override
