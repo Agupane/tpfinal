@@ -75,7 +75,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MapaActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnMapLongClickListener, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
+public class MapaActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
     /** Mapa de google a mostrar */
     private GoogleMap mapa;
     /** Cliente de api de google para utilizar el servicio de localizacion */
@@ -206,29 +206,6 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         super.onPause();
     }
 
-    /* TODO borrar este método comentado si no vamos a usar el Options Menu */
-/*
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        switch (id) {
-            case R.id.nav_estac: {
-                Log.v("OPCIONES_USUARIO: ","Estacionando en ubicacion actual");
-                estacionarEnPosicionActual();
-                break;
-            }
-            default: {
-                break;
-            }
-        }
-        return super.onOptionsItemSelected(item);
-    }
-*/
 
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -298,7 +275,6 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     private void cargarMapa(){
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mapa.setMyLocationEnabled(true);
-            mapa.setOnMapLongClickListener(this);
             mapa.setOnInfoWindowClickListener(this);
             mapa.setInfoWindowAdapter(ventanaInfo);
             marcarEstacionamientos();
@@ -339,37 +315,8 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
             }
             return null;
     }
-    @Override
-    public void onMapLongClick(LatLng latLng) {
-        /*
-        Intent i = new Intent(MapaActivity.this, Activity.class);
-        i.putExtra("coordenadas",latLng);
-        ubicacion=latLng;
-        startActivityForResult(i, CODIGO_RESULTADO_ALTA_RECLAMO);
-        */
-    }
-
-
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        /*
-        switch(resultCode){
-            case Activity.RESULT_OK:{
-                Bundle extras = data.getExtras();
-                nuevoReclamo = (Reclamo) extras.get("reclamo");
-                agregarMarcador(nuevoReclamo);
-                break;
-            }
-            case Activity.RESULT_CANCELED:{
-                break;
-            }
-        }
-        */
-    }
-
-    @Override
-
     public void onConnected(@Nullable Bundle bundle) {
         /** Pido permisos de ubicacion */
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -495,7 +442,6 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         intent.setAction(String.valueOf(ConstantsNotificaciones.ACCION_GENERAR_ALARMA));
         Integer idPendingIntent = ubicacionVehiculo.getId();
         PendingIntent pi = PendingIntent.getBroadcast(this,idPendingIntent,intent,0);
-        //alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,TIEMPO_CONFIGURADO_ALARMA,DURACION_REPETICION_ALARMA,pi);
         alarmManager.set(AlarmManager.RTC_WAKEUP,ConstantsNotificaciones.TIEMPO_CONFIGURADO_ALARMA,pi);
     }
 
@@ -517,14 +463,15 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     @Override
     /**
      * Evento que aparece cuando se hace clik sobre el info windows de un marcador
-     * TODO - Implementar una interfaz mejor, en "activity_info_estacionamiento_marker" hice un bosquejo de una interfaz
-     * Ahora solamente hice un dialog interface basico para probar
      */
     public void onInfoWindowClick(Marker marker) {
         marcadorSelected = marker;
-        /* String msgSalidaEstacionamiento = getResources().getString(R.string.btnMarcarSalida);
+        final String msgSalidaEstacionamiento = getResources().getString(R.string.btnMarcarSalida);
+        final String msgEstacionarAqui = getResources().getString(R.string.menuOptEstacionarAqui);
         String msgNavegar = getResources().getString(R.string.btnAbrirEnNavigator);
         String msgCancelar = getResources().getString(R.string.btnCancelar);
+        String msgTituloDialog = getResources().getString(R.string.menuDialogTitulo);
+        /*
         // Crear un buildery vincularlo a la actividad que lo mostrará
         LayoutInflater linf = LayoutInflater.from(this);
         final View inflator = linf.inflate(R.layout.alert_distancia_busqueda, null);
@@ -555,16 +502,21 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
             );*/
         final Dialog dialogTest = new Dialog(this); // Context, this, etc.
         dialogTest.setContentView(R.layout.custom_info_window_estacionamiento);
-        dialogTest.setTitle("Opciones de Estacionamiento");
+        dialogTest.setTitle(msgTituloDialog);
+        dialogTest.setCancelable(true);
         dialogTest.show();
 
         Button btnAbrirNavigator = (Button) dialogTest.findViewById(R.id.btnNavegar);
-        Button btnSalidaEntrada = (Button) dialogTest.findViewById(R.id.btnSalir_EntrarEstacionamiento);
+        final Button btnSalidaEntrada = (Button) dialogTest.findViewById(R.id.btnSalir_EntrarEstacionamiento);
         Button btnCancelar = (Button) dialogTest.findViewById(R.id.btnCancelar);
-        btnAbrirNavigator.setText("Navegar hasta la dirección");
-        //TODO Cambio de nombre si entra o si sale
-        btnSalidaEntrada.setText("Marcar salida");
-        btnCancelar.setText("Cancelar");
+        btnAbrirNavigator.setText(msgNavegar);
+        if(lugarEstacionamientoGuardado == false){
+            btnSalidaEntrada.setText(msgEstacionarAqui);
+        }
+        else{
+            btnSalidaEntrada.setText(msgSalidaEstacionamiento);
+        }
+        btnCancelar.setText(msgCancelar);
         /** Listener de la opcion de navegar */
         btnAbrirNavigator.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -577,7 +529,31 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         btnSalidaEntrada.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO Logica de si entra o si sale
+                /** Se ejecuta si el vehiculo no esta estacionado */
+                if(btnSalidaEntrada.getText().equals(msgEstacionarAqui) && lugarEstacionamientoGuardado == false){
+                    Log.v(TAG_MENU,"Estacionando en ubicacion actual");
+                    estacionarEnPosicionActual();
+                    lugarEstacionamientoGuardado = true;
+                    btnSalidaEntrada.setText(msgSalidaEstacionamiento);
+                    menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgSalidaEstacionamiento);
+                    menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(true);
+                    dialogTest.dismiss();
+                }
+                else {
+                    /** Se ejecuta si el vehiculo se encuentra actualmente estacionado */
+                    if(btnSalidaEntrada.getText().equals(msgSalidaEstacionamiento) && lugarEstacionamientoGuardado == true) {
+                        Log.v(TAG_MENU, "Borrando ubicacion guardada");
+                        //Creo una Location auxiliar con las coordenadas de la ubicacion guardada y enfoco el mapa ahi
+                        Location lugarEstacionado = new Location(ubicacionActual);
+                        lugarEstacionado.setLatitude(estCalle.getCoordenadas().latitude);
+                        lugarEstacionado.setLongitude(estCalle.getCoordenadas().longitude);
+                        enfocarMapaEnUbicacion(lugarEstacionado);
+                        btnSalidaEntrada.setText(msgEstacionarAqui);
+                        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgEstacionarAqui);
+                        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(false);
+                        dialogTest.dismiss();
+                    }
+                }
                 marcarSalidaEstacionamiento(marcadorSelected);
             }
         });
