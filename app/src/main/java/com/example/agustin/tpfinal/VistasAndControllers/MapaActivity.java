@@ -36,8 +36,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.example.agustin.tpfinal.Dao.EstacionamientoDAO;
 import com.example.agustin.tpfinal.Dao.JsonDBHelper;
 import com.example.agustin.tpfinal.Dao.UbicacionVehiculoEstacionadoDAO;
+import com.example.agustin.tpfinal.Exceptions.EstacionamientoException;
 import com.example.agustin.tpfinal.Exceptions.UbicacionVehiculoException;
 import com.example.agustin.tpfinal.Modelo.Estacionamiento;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
@@ -66,6 +68,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -102,6 +105,8 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     private static final String TAG_MENU = "Menu_Navigation";
     /** Dao que almacena ubicacion de vehiculos estacionados */
     private static final UbicacionVehiculoEstacionadoDAO ubicacionVehiculoDAO = UbicacionVehiculoEstacionadoDAO.getInstance();
+    /** Dao que almacena ubicacion de Estacionamientos */
+    private static final EstacionamientoDAO estacionamientoDAO = EstacionamientoDAO.getInstance();
     /** Helper que administra la base de datos JSON LOCAL */
     private final JsonDBHelper jsonDbHelper = JsonDBHelper.getInstance();
     /** Representa el id del usuario que esta utilizando la aplicacion actualmente, TODO - hacer que la app obtenga el id en onCreate() */
@@ -158,7 +163,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener((View.OnClickListener) this);
         mapaMarcadores = new HashMap<>();
-        llenarEstacionamientos();
+
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
@@ -175,6 +180,12 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         mResultReceiver.setReceiver(this);
         mapaActivityInstance = this;
 
+        try {
+            estacionamientoDAO.inicializarListaEstacionamientos(this);
+            llenarEstacionamientos();
+        } catch (EstacionamientoException e) {
+            //TODO manejar la excepcion
+        }
     }
 
     @Override
@@ -894,31 +905,21 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-
-    /** TODO CAMBIAR este método!! Levantar la lista desde JSON persistidos (cuando esté implementado) */
     private void llenarEstacionamientos(){
+        //TODO ATENCION!!!! OJO al índice con el que se inicializó el array, totalmente harcodeado!! (ver estacionamientoDAO.listarEstacionamientosHarcodeados())
         Estacionamientos = new Estacionamiento[3];
-        Estacionamientos[0] = new Estacionamiento();
-        Estacionamientos[0].setDireccionEstacionamiento("DIRECCIÓN: Terminal Belgrano");
-        Estacionamientos[0].setNombreEstacionamiento("NOMBRE: El Estacionamiento 0");
-        Estacionamientos[0].setHorarios("HORARIOS: Lun-Dom abierto las 24hs");
-        Estacionamientos[0].setTarifaEstacionamiento("TARIFA: $30/hs");
-        Estacionamientos[0].setPosicionEstacionamiento(new LatLng(-31.642935, -60.700636));
-
-        Estacionamientos[1] = new Estacionamiento();
-        Estacionamientos[1].setDireccionEstacionamiento("DIRECCIÓN: Rivadavia 3176");
-        Estacionamientos[1].setNombreEstacionamiento("NOMBRE: El Estacionamiento 1");
-        Estacionamientos[1].setHorarios("HORARIOS: Lun-Dom de 8hs a 19hs");
-        Estacionamientos[1].setTarifaEstacionamiento("TARIFA: $20/hs");
-        Estacionamientos[1].setPosicionEstacionamiento(new LatLng(-31.639896, -60.702384));
-
-
-        Estacionamientos[2] = new Estacionamiento();
-        Estacionamientos[2].setDireccionEstacionamiento("DIRECCIÓN: La Rioja y 25 de Mayo");
-        Estacionamientos[2].setNombreEstacionamiento("NOMBRE: El Estacionamiento 2");
-        Estacionamientos[2].setHorarios("HORARIOS: Lun-Vie abierto las 24hs, Sáb de 9hs a 18hs");
-        Estacionamientos[2].setTarifaEstacionamiento("TARIFA: Te cobramos dos huevos");
-        Estacionamientos[2].setPosicionEstacionamiento(new LatLng(-31.646182, -60.705633));
+        ArrayList<Estacionamiento> estacionamientoList = new ArrayList<Estacionamiento>();
+        try {
+            estacionamientoList = estacionamientoDAO.listarEstacionamientos(this);
+            int i=0;
+            for(Estacionamiento e : estacionamientoList){
+                System.out.println("---------------"+e.getNombreEstacionamiento());
+                Estacionamientos[i] = e;
+                i++;
+            }
+        } catch (EstacionamientoException e) {
+            //TODO manejar la excepcion
+        }
     }
 
     private void marcarEstacionamientos(){

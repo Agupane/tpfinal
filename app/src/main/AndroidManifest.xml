@@ -13,23 +13,27 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme.NoActionBar">
+        android:theme="@style/Theme.Splash">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key"></meta-data>
 
         <activity
-            android:name=".VistasAndControllers.MapaActivity"
-            android:label="@string/app_name">
+            android:name=".Utils.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                android:launchMode="singleTask"
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
+            android:name=".VistasAndControllers.MapaActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+        <activity
             android:name=".VistasAndControllers.ListarLugaresActivity"
-            android:label="Listado de Estacionamientos" >
+            android:label="Listado de Estacionamientos"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.LISTA" />
                 android:launchMode="singleTask"

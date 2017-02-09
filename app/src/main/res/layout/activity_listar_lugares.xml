@@ -25,14 +25,14 @@
         android:id="@+id/fabmap"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/icn_map"
+        app:srcCompat="@drawable/icn_globe"
         android:layout_marginTop="10dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         app:backgroundTint="#FFFFFF"
-        android:layout_marginRight="3dp"
-        android:layout_marginEnd="3dp" />
+        android:layout_marginRight="5dp"
+        android:layout_marginEnd="5dp" />
 
     <LinearLayout
         android:orientation="vertical"

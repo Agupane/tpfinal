@@ -11,14 +11,18 @@ import com.example.agustin.tpfinal.Exceptions.UbicacionVehiculoException;
 import com.example.agustin.tpfinal.Modelo.Estacionamiento;
 import com.example.agustin.tpfinal.Modelo.UbicacionVehiculoEstacionado;
 import com.example.agustin.tpfinal.R;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Agustin on 01/25/2017.
@@ -34,6 +38,7 @@ public class EstacionamientoDAO {
     private static final FileSaverHelper fileSaver = FileSaverHelper.getInstance(); // Clase que se encarga del almacenamiento local
     private static final String TAG = "EstacionamientoDAO";
     private static final String UBICACION_VEHICULO_FILENAME = "estacionamientos.json";
+    private static final String LISTA_ESTACIONAMIENTOS_FILENAME = "ParkingLots.json";
 
     private Context context;
 
@@ -102,6 +107,26 @@ public class EstacionamientoDAO {
             }
         }
     }
+
+    public void inicializarListaEstacionamientos(Context context) throws EstacionamientoException{
+        JSONObject baseDeDatos;
+        String jsonString;
+        String msg;
+        try{
+            /** TODO en un futuro levantar la lista desde la nube */
+            Estacionamiento[] estacionamientosList = this.listarEstacionamientosHarcodeados();
+            jsonString = this.generarJsonDesdeArray(estacionamientosList);
+            fileSaver.usarEscrituraInterna(true);
+            fileSaver.guardarArchivo(jsonString,LISTA_ESTACIONAMIENTOS_FILENAME,context);
+        }
+        catch (Exception e){
+            msg = "Error al crear/guardar la lista de Estacionamientos.";
+            Log.v(TAG,msg);
+            throw new EstacionamientoException(msg);
+        }
+    }
+
+
     /**
      * Actualiza la ubicacion del objeto ubicacionVehiculoEstacionado en la base de datos local
      * @param estacionamiento
@@ -185,14 +210,14 @@ public class EstacionamientoDAO {
      * @return
      */
     /** TODO CAMBIAR FIRMA */
-    public ArrayList<Estacionamiento> listarEstacionamientos(Integer idUsuario,Context context) throws EstacionamientoException {
+    public ArrayList<Estacionamiento> listarEstacionamientos(/*Integer idUsuario,*/Context context) throws EstacionamientoException {
         this.context = context;
         switch(MODO_PERSISTENCIA_CONFIGURADA){
             case MODO_PERSISTENCIA_LOCAL:{
-                return listarEstacionamientosLocal(idUsuario);
+                return listarEstacionamientosLocal(/*Integer idUsuario*/);
             }
             case MODO_PERSISTENCIA_REMOTA:{
-                return listarEstacionamientosRemoto(idUsuario);
+                return listarEstacionamientosRemoto(/*Integer idUsuario*/);
             }
             case MODO_PERSISTENCIA_MIXTA:{
                 /** TODO - IMPLEMENTAR SI ES NECESARIO */
@@ -202,12 +227,31 @@ public class EstacionamientoDAO {
         return null;
     }
     /** TODO IMPLEMENTAR */
-    private ArrayList<Estacionamiento> listarEstacionamientosLocal(Integer idUsuario) throws EstacionamientoException {
-        return null;
+    private ArrayList<Estacionamiento> listarEstacionamientosLocal(/*Integer idUsuario*/) throws EstacionamientoException {
+        ArrayList<Estacionamiento> resultado = new ArrayList<Estacionamiento>();
+        String jsonStringBaseDeDatos;
+        String msg;
+        try {
+            Gson myGson = new Gson();
+            jsonStringBaseDeDatos = fileSaver.getArchivo(LISTA_ESTACIONAMIENTOS_FILENAME,context);
+            Type type = new TypeToken<List<Estacionamiento>>() {}.getType();
+            List<Estacionamiento> estacionamientosList = myGson.fromJson(jsonStringBaseDeDatos, type);
+
+            for (Estacionamiento e : estacionamientosList) {
+                resultado.add(e);
+            }
+        }
+        catch (FileSaverException e) {
+            msg="Error de lectura desde el JSON de Estacionamientos.";
+            Log.v(TAG,msg);
+        }
+        return resultado;
     }
 
     /** TODO - Implementar */
-    private ArrayList<Estacionamiento> listarEstacionamientosRemoto(Integer idUsuario) throws EstacionamientoException{ return null;}
+    private ArrayList<Estacionamiento> listarEstacionamientosRemoto(/*Integer idUsuario*/) throws EstacionamientoException{
+        return null;
+    }
 
     /**
      * Borra el objeto de la base de datos de manera LOGICA, no hay implementacion FISICA
@@ -249,6 +293,56 @@ public class EstacionamientoDAO {
      */
     private void borrarEstacionamientoRemoto(Estacionamiento estacionamiento){
 
+    }
+
+    private Estacionamiento[] listarEstacionamientosHarcodeados(){
+        Estacionamiento[] Estacionamientos = new Estacionamiento[3];
+        Estacionamientos[0] = new Estacionamiento();
+        Estacionamientos[0].setDireccionEstacionamiento("DIRECCIÓN: Belgrano 2964");
+        Estacionamientos[0].setNombreEstacionamiento("NOMBRE: El Estacionamiento de la Terminal");
+        Estacionamientos[0].setHorarios("HORARIOS: Lun-Dom abierto las 24hs");
+        Estacionamientos[0].setTarifaEstacionamiento("TARIFA: $30/hs");
+        Estacionamientos[0].setPosicionEstacionamiento(new LatLng(-31.642935, -60.700636));
+        Estacionamientos[0].setTelefono("4567893");
+        Estacionamientos[0].setEsTechado(true);
+        Estacionamientos[0].setAceptaTarjetas(true);
+        Estacionamientos[0].setCapacidad(80);
+
+        Estacionamientos[1] = new Estacionamiento();
+        Estacionamientos[1].setDireccionEstacionamiento("DIRECCIÓN: Rivadavia 3176");
+        Estacionamientos[1].setNombreEstacionamiento("NOMBRE: Estacionamiento Rivadavia");
+        Estacionamientos[1].setHorarios("HORARIOS: Lun-Dom de 7hs a 21hs");
+        Estacionamientos[1].setTarifaEstacionamiento("TARIFA: $15/hs");
+        Estacionamientos[1].setPosicionEstacionamiento(new LatLng(-31.639896, -60.702384));
+        Estacionamientos[1].setTelefono("4561234");
+        Estacionamientos[1].setEsTechado(false);
+        Estacionamientos[1].setAceptaTarjetas(false);
+        Estacionamientos[1].setCapacidad(45);
+
+        Estacionamientos[2] = new Estacionamiento();
+        Estacionamientos[2].setDireccionEstacionamiento("DIRECCIÓN: La Rioja y 25 de Mayo");
+        Estacionamientos[2].setNombreEstacionamiento("NOMBRE: GARAGE MONTeCoRLO");
+        Estacionamientos[2].setHorarios("HORARIOS: Lun-Vie abierto las 24hs, Sáb de 9hs a 18hs");
+        Estacionamientos[2].setTarifaEstacionamiento("TARIFA: Te cobramos dos huevos");
+        Estacionamientos[2].setPosicionEstacionamiento(new LatLng(-31.646182, -60.705633));
+        Estacionamientos[2].setTelefono("4321987");
+        Estacionamientos[2].setEsTechado(true);
+        Estacionamientos[2].setAceptaTarjetas(false);
+        Estacionamientos[2].setCapacidad(60);
+
+        return Estacionamientos;
+    }
+
+
+    private String generarJsonDesdeArray(Estacionamiento[] estacionamientosList) {
+        //Generar JSON a partir de un ArrayList
+        List<Estacionamiento> listEstac = new ArrayList<Estacionamiento>();
+        for (int i=0; i<estacionamientosList.length; i++){
+            listEstac.add(estacionamientosList[i]);
+        }
+        Gson gson = new Gson();
+        String jsonEstac = gson.toJson(listEstac);
+        return jsonEstac;
     }
 
 
