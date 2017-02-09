@@ -3,6 +3,7 @@ package com.example.agustin.tpfinal.VistasAndControllers;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlarmManager;
+import android.app.Dialog;
 import android.app.PendingIntent;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -32,6 +33,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.example.agustin.tpfinal.Dao.JsonDBHelper;
@@ -520,7 +522,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
      */
     public void onInfoWindowClick(Marker marker) {
         marcadorSelected = marker;
-        String msgSalidaEstacionamiento = getResources().getString(R.string.btnMarcarSalida);
+        /* String msgSalidaEstacionamiento = getResources().getString(R.string.btnMarcarSalida);
         String msgNavegar = getResources().getString(R.string.btnAbrirEnNavigator);
         String msgCancelar = getResources().getString(R.string.btnCancelar);
         // Crear un buildery vincularlo a la actividad que lo mostrará
@@ -529,7 +531,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         AlertDialog.Builder builder= new AlertDialog.Builder(this);
 
             builder.setPositiveButton( /** Listener de la opcion de navegar */
-                    msgNavegar, new DialogInterface.OnClickListener() {
+              /*      msgNavegar, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             abrirNavigatorEnDestino(marcadorSelected);
@@ -537,23 +539,59 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                         }
                     }
             ).setNeutralButton( /** Listener de la opcion de marcar salida del estacionamiento */
-                    msgSalidaEstacionamiento, new DialogInterface.OnClickListener() {
+                /*    msgSalidaEstacionamiento, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             marcarSalidaEstacionamiento(marcadorSelected);
                         }
                     }
             ).setNegativeButton( /** Listener de la opcion de cancelar */
-                    msgCancelar, new DialogInterface.OnClickListener() {
+                  /*  msgCancelar, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
                         }
                     }
-            );
-        AlertDialog dialog= builder.create();
+            );*/
+        final Dialog dialogTest = new Dialog(this); // Context, this, etc.
+        dialogTest.setContentView(R.layout.custom_info_window_estacionamiento);
+        dialogTest.setTitle("Opciones de Estacionamiento");
+        dialogTest.show();
+
+        Button btnAbrirNavigator = (Button) dialogTest.findViewById(R.id.btnNavegar);
+        Button btnSalidaEntrada = (Button) dialogTest.findViewById(R.id.btnSalir_EntrarEstacionamiento);
+        Button btnCancelar = (Button) dialogTest.findViewById(R.id.btnCancelar);
+        btnAbrirNavigator.setText("Navegar hasta la dirección");
+        //TODO Cambio de nombre si entra o si sale
+        btnSalidaEntrada.setText("Marcar salida");
+        btnCancelar.setText("Cancelar");
+        /** Listener de la opcion de navegar */
+        btnAbrirNavigator.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                abrirNavigatorEnDestino(marcadorSelected);
+                dialogTest.dismiss();
+            }
+        });
+        /** Listener de la opcion de marcar salida del estacionamiento */
+        btnSalidaEntrada.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO Logica de si entra o si sale
+                marcarSalidaEstacionamiento(marcadorSelected);
+            }
+        });
+        /** Listener de la opcion de cancelar */
+        btnCancelar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialogTest.dismiss();
+            }
+        });
+
+        //AlertDialog dialog= builder.create();
         //Mostrarlo
-        dialog.show();
+        //dialog.show();
     }
 
     /**

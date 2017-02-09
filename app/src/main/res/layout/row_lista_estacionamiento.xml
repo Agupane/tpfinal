@@ -11,27 +11,47 @@
 
         <TextView
             android:text="NOMBRE"
+            android:textColor="#383838"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tvNombreEstacionamiento" />
+            android:id="@+id/tvNombreEstacionamiento"
+            android:shadowColor="#A8A8A8"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="5"/>
 
         <TextView
             android:text="DIRECCION"
+            android:textColor="#383838"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tvDireccionEstacionamiento" />
+            android:id="@+id/tvDireccionEstacionamiento"
+            android:shadowColor="#A8A8A8"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="5"/>
 
         <TextView
             android:text="HORARIO"
+            android:textColor="#383838"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tvHorarioEstacionamiento" />
+            android:id="@+id/tvHorarioEstacionamiento"
+            android:shadowColor="#A8A8A8"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="5"/>
 
         <TextView
             android:text="TARIFAS"
+            android:textColor="#383838"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/textViewTarifa" />
+            android:id="@+id/textViewTarifa"
+            android:shadowColor="#A8A8A8"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="5"/>
 
         <LinearLayout
             android:orientation="horizontal"
@@ -40,18 +60,31 @@
 
             <Button
                 android:text="Ver en el mapa"
-                android:textColor="#FFFFFF"
+                android:textColor="#383838"
+
                 android:background="@drawable/button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/botonVerEnMapa" />
+                android:id="@+id/botonVerEnMapa"
+
+                android:shadowColor="#A8A8A8"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="5" />
 
             <Button
                 android:text="Reservar"
+                android:textColor="#383838"
+
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/botonReservar"
-                android:layout_weight="0.70" />
+                android:background="@drawable/button"
+
+                android:shadowColor="#A8A8A8"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="5"                />
         </LinearLayout>
 
     </LinearLayout>
