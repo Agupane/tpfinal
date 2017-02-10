@@ -16,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -70,6 +71,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -180,11 +182,21 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         mResultReceiver.setReceiver(this);
         mapaActivityInstance = this;
 
+        //Aca hago el primer try para intentar leer el archivo que tiene la lista de estacionamientos
+        //Si no existe, lo creo, lo lleno (harcodeado..!) y lo leo
         try {
-            estacionamientoDAO.inicializarListaEstacionamientos(this);
-            llenarEstacionamientos();
+            Estacionamientos = estacionamientoDAO.llenarEstacionamientos(this);
         } catch (EstacionamientoException e) {
             //TODO manejar la excepcion
+            String msgLog = "No se pudo leer el archivo";
+            Log.v(TAG,msgLog);
+            try {
+                estacionamientoDAO.inicializarListaEstacionamientos(this);
+                Estacionamientos = estacionamientoDAO.llenarEstacionamientos(this);
+            } catch (EstacionamientoException e1) {
+                msgLog = "Hubo un error al crear el archivo con la lista de Estacionamientos.";
+                Log.v(TAG,msgLog);
+            }
         }
     }
 
@@ -905,39 +917,15 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void llenarEstacionamientos(){
-        //TODO ATENCION!!!! OJO al índice con el que se inicializó el array, totalmente harcodeado!! (ver estacionamientoDAO.listarEstacionamientosHarcodeados())
-        Estacionamientos = new Estacionamiento[3];
-        ArrayList<Estacionamiento> estacionamientoList = new ArrayList<Estacionamiento>();
-        try {
-            estacionamientoList = estacionamientoDAO.listarEstacionamientos(this);
-            int i=0;
-            for(Estacionamiento e : estacionamientoList){
-                System.out.println("---------------"+e.getNombreEstacionamiento());
-                Estacionamientos[i] = e;
-                i++;
-            }
-        } catch (EstacionamientoException e) {
-            //TODO manejar la excepcion
-        }
-    }
-
     private void marcarEstacionamientos(){
         /*mapa.addMarker((new MarkerOptions()
                 .position(Estacionamientos[0].getPosicionEstacionamiento()) //Pongo el lugar
                 .title(Estacionamientos[0].getNombreEstacionamiento())) //Le meto titulo
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));*/
-        addMarker(Estacionamientos[0].getPosicionEstacionamiento(),Estacionamientos[0].getNombreEstacionamiento(),R.drawable.marker_estacionamiento);
-        /*mapa.addMarker((new MarkerOptions()
-                .position(Estacionamientos[1].getPosicionEstacionamiento()) //Pongo el lugar
-                .title(Estacionamientos[1].getNombreEstacionamiento())) //Le meto titulo
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));*/
-        addMarker(Estacionamientos[1].getPosicionEstacionamiento(),Estacionamientos[1].getNombreEstacionamiento(),R.drawable.marker_estacionamiento);
-        /*mapa.addMarker((new MarkerOptions()
-                .position(Estacionamientos[2].getPosicionEstacionamiento()) //Pongo el lugar
-                .title(Estacionamientos[2].getNombreEstacionamiento())) //Le meto titulo
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));*/
-        addMarker(Estacionamientos[2].getPosicionEstacionamiento(),Estacionamientos[2].getNombreEstacionamiento(),R.drawable.marker_estacionamiento);
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker_estacionamiento)));
+        addMarker(Estacionamientos[0].getPosicionEstacionamiento(),Estacionamientos[0].getNombreEstacionamiento(),R.drawable.marker_estacionamiento);*/
+        for(int i=0; i<Estacionamientos.length;i++){
+            addMarker(Estacionamientos[i].getPosicionEstacionamiento(),(Estacionamientos[i].getNombreEstacionamiento()).substring(8),R.drawable.marker_estacionamiento);
+        }
     }
 
     @Override

@@ -5,7 +5,6 @@ package com.example.agustin.tpfinal.Modelo;
  */
 
 import android.location.Address;
-
 import com.google.android.gms.maps.model.LatLng;
 
 public class Estacionamiento {
@@ -20,7 +19,7 @@ public class Estacionamiento {
     private Boolean eliminado;
     private int capacidad;
 
-    public void Estacionamiento(){
+    public Estacionamiento(){
         this.eliminado = false;
     }
 

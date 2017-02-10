@@ -1,91 +1,145 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
 
     <LinearLayout
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp">
 
-        <TextView
-            android:text="NOMBRE"
-            android:textColor="#383838"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/tvNombreEstacionamiento"
-            android:shadowColor="#A8A8A8"
-            android:shadowDx="0"
-            android:shadowDy="0"
-            android:shadowRadius="5"/>
-
-        <TextView
-            android:text="DIRECCION"
-            android:textColor="#383838"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/tvDireccionEstacionamiento"
-            android:shadowColor="#A8A8A8"
-            android:shadowDx="0"
-            android:shadowDy="0"
-            android:shadowRadius="5"/>
-
-        <TextView
-            android:text="HORARIO"
-            android:textColor="#383838"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/tvHorarioEstacionamiento"
-            android:shadowColor="#A8A8A8"
-            android:shadowDx="0"
-            android:shadowDy="0"
-            android:shadowRadius="5"/>
-
-        <TextView
-            android:text="TARIFAS"
-            android:textColor="#383838"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/textViewTarifa"
-            android:shadowColor="#A8A8A8"
-            android:shadowDx="0"
-            android:shadowDy="0"
-            android:shadowRadius="5"/>
+        <ImageView
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            app:srcCompat="@color/colorPrimary"
+            android:id="@+id/imageView3"
+            android:layout_weight="0.1" />
 
         <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="0dp"
+            android:background="@drawable/row_background"
+            android:layout_weight="1.5"
+            android:paddingStart="5dp"
+            android:paddingTop="3dp">
 
-            <Button
-                android:text="Ver en el mapa"
+            <TextView
+                android:text="NOMBRE"
                 android:textColor="#383838"
-
-                android:background="@drawable/button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/botonVerEnMapa"
-
+                android:id="@+id/tvNombreEstacionamiento"
                 android:shadowColor="#A8A8A8"
                 android:shadowDx="0"
                 android:shadowDy="0"
-                android:shadowRadius="5" />
+                android:shadowRadius="5"
+                android:textStyle="normal|bold" />
 
-            <Button
-                android:text="Reservar"
+            <TextView
+                android:text="DIRECCION"
                 android:textColor="#383838"
-
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/botonReservar"
-                android:background="@drawable/button"
-
+                android:id="@+id/tvDireccionEstacionamiento"
                 android:shadowColor="#A8A8A8"
                 android:shadowDx="0"
                 android:shadowDy="0"
-                android:shadowRadius="5"                />
+                android:shadowRadius="5"/>
+
+            <TextView
+                android:text="HORARIO"
+                android:textColor="@android:color/darker_gray"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/tvHorarioEstacionamiento"
+                android:shadowColor="#A8A8A8"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="5"
+                android:textSize="12sp" />
+
+            <TextView
+                android:text="TARIFAS"
+                android:textColor="#383838"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/textViewTarifa"
+                android:shadowColor="#A8A8A8"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="5"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    app:srcCompat="@drawable/icn_techado"
+                    android:id="@+id/imageViewTechado"
+                    android:layout_weight="1" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:id="@+id/imageViewTarjeta"
+                    android:layout_weight="1"
+                    app:srcCompat="@drawable/icn_tarjeta"
+                    android:layout_gravity="bottom" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:id="@+id/imageView24hs"
+                    android:layout_weight="1"
+                    app:srcCompat="@drawable/icn_24h" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:text="Ver en el mapa"
+                    android:textColor="#383838"
+
+                    android:background="@drawable/button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/botonVerEnMapa"
+                    android:layout_weight="1"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5" />
+
+                <Button
+                    android:text="Reservar"
+                    android:textColor="#383838"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/botonReservar"
+                    android:background="@drawable/button"
+                    android:layout_weight="1"
+                    android:shadowColor="#A8A8A8"
+                    android:shadowDx="0"
+                    android:shadowDy="0"
+                    android:shadowRadius="5"                />
+            </LinearLayout>
+
         </LinearLayout>
-
     </LinearLayout>
+
 </LinearLayout>
