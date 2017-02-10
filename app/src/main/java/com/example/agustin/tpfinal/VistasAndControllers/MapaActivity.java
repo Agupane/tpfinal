@@ -83,7 +83,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MapaActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
+public class MapaActivity extends AppCompatActivity implements TimePicker.OnTimeChangedListener, NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
     /** Mapa de google a mostrar */
     private GoogleMap mapa;
     /** Cliente de api de google para utilizar el servicio de localizacion */
@@ -148,6 +148,8 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     private static Menu menuLateral;
     /** Objeto que representa el cuadro de dialogo que brinda informacion en caso de que el vehiculo se encuentre estacionado X Tiempo */
     private static AlertDialog dialogInfoVehiculoEstacionado;
+    private int pickerHour = 0;
+    private int pickerMin = 0;
 
 
     @Override
@@ -983,7 +985,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private void setearTimer(Context context) {
+    private void setearTimer(final Context context) {
 
         String msgCancelar = getResources().getString(R.string.btnCancelar);
         String msgGuardar = getResources().getString(R.string.btnDialogSetearAlarma);
@@ -1001,13 +1003,15 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         btnCancelar.setText(msgCancelar);
 
         TimePicker timePicker = (TimePicker) dialogTest.findViewById(R.id.timePicker);
-        //TODO implementar todos los métodos y listeners para el TimePicker
+        timePicker.setIs24HourView(true);
+        timePicker.setOnTimeChangedListener((TimePicker.OnTimeChangedListener) context);
+        //TODO implementar todos los métodos TimePicker! (validaciones, etc)
 
         /** Listener de la opcion de setear el timer de la alarma */
         btnSetearTimer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                
+                //TODO setear alarma/timer
                 dialogTest.dismiss();
             }
         });
@@ -1021,5 +1025,11 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         });
 
 
+    }
+
+    @Override
+    public void onTimeChanged(TimePicker timePicker, int hourOfDay, int minute) {
+        pickerHour = hourOfDay;
+        pickerMin = minute;
     }
 }
