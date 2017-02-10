@@ -46,7 +46,7 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         this.context = context;
         String s = intent.getAction();
-        if (s.equals(ConstantsNotificaciones.ACCION_GENERAR_ALARMA)) {
+        if (s.equals(ConstantsNotificaciones.ACCION_GENERAR_ALARMA) && (ubicacionEstacionamiento != null)) {
             String msg,idMarcador;
             idMarcador = intent.getStringExtra("idMarcador");
             markerEstacionamiento = mapaMarcadores.get(idMarcador);
@@ -75,36 +75,37 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
         String textoDefault = context.getResources().getString(R.string.notificacionAlarmaEstTexto);
         String titulo = context.getResources().getString(R.string.notificacionAlarmaEstTitulo);
 
-        /* Creo el texto a mostrar en caso de que se pueda generar una notificacion big text */
-        StringBuilder texto = new StringBuilder();
-        texto.append("Su vehiculo se encuentra estacionado desde las ");
-        Date date = new Date(ubicacionEstacionamiento.getHoraIngreso());
-        tiempoDeIngreso = new SimpleDateFormat("HH:mm").format(date);
-        texto.append(tiempoDeIngreso);
+        if(ubicacionEstacionamiento != null){
+            /* Creo el texto a mostrar en caso de que se pueda generar una notificacion big text */
+            StringBuilder texto = new StringBuilder();
+            texto.append("Su vehiculo se encuentra estacionado desde las ");
+            Date date = new Date(ubicacionEstacionamiento.getHoraIngreso());
+            tiempoDeIngreso = new SimpleDateFormat("HH:mm").format(date);
+            texto.append(tiempoDeIngreso);
 
         /* Creo los botones de la notificacion */
-        Intent ignorarAlarmaIntent = new Intent(context,AlarmEstacionamientoReceiver.class);
-        ignorarAlarmaIntent.setAction(String.valueOf(ConstantsNotificaciones.ACCION_NOTIFICACION_IGNORAR_ALARMA));
-        PendingIntent piIgnorarAlarma = PendingIntent.getBroadcast(context, 0, ignorarAlarmaIntent, 0);
+            Intent ignorarAlarmaIntent = new Intent(context,AlarmEstacionamientoReceiver.class);
+            ignorarAlarmaIntent.setAction(String.valueOf(ConstantsNotificaciones.ACCION_NOTIFICACION_IGNORAR_ALARMA));
+            PendingIntent piIgnorarAlarma = PendingIntent.getBroadcast(context, 0, ignorarAlarmaIntent, 0);
 
-        Intent salirEstacionamientoIntent = new Intent(context,AlarmEstacionamientoReceiver.class);
-        salirEstacionamientoIntent.setAction(String.valueOf(ConstantsNotificaciones.ACCION_NOTIFICACION_SALIR_ESTACIONAMIENTO));
-        PendingIntent piSalirEstacionamiento = PendingIntent.getBroadcast(context, 0, salirEstacionamientoIntent, 0);
+            Intent salirEstacionamientoIntent = new Intent(context,AlarmEstacionamientoReceiver.class);
+            salirEstacionamientoIntent.setAction(String.valueOf(ConstantsNotificaciones.ACCION_NOTIFICACION_SALIR_ESTACIONAMIENTO));
+            PendingIntent piSalirEstacionamiento = PendingIntent.getBroadcast(context, 0, salirEstacionamientoIntent, 0);
 
 
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(context)
-                        .setSmallIcon(R.drawable.marker_estacionamiento)
-                        .setContentTitle(titulo)
-                        .setContentText(textoDefault)
-                        .setAutoCancel(true)
+            NotificationCompat.Builder mBuilder =
+                    new NotificationCompat.Builder(context)
+                            .setSmallIcon(R.drawable.marker_estacionamiento)
+                            .setContentTitle(titulo)
+                            .setContentText(textoDefault)
+                            .setAutoCancel(true)
                         /* Genera la notifcacion en forma de big text, si el dispositivo es menor a 4.1, esto no se genera */
-                        .setStyle(new NotificationCompat.BigTextStyle().bigText(texto))
+                            .setStyle(new NotificationCompat.BigTextStyle().bigText(texto))
                         /* TODO - CONFIGURAR ICONOS (NO ESTAN SIENDO VISIBLES) */
-                        .addAction (R.drawable.ic_ignorar_24dp,
-                                getString(R.string.btnIgnorarAlarma), piIgnorarAlarma)
-                        .addAction (R.drawable.ic_parking_24dp,
-                                getString(R.string.btnSalirEstacionamiento), piSalirEstacionamiento);
+                            .addAction (R.drawable.ic_ignorar_24dp,
+                                    getString(R.string.btnIgnorarAlarma), piIgnorarAlarma)
+                            .addAction (R.drawable.ic_parking_24dp,
+                                    getString(R.string.btnSalirEstacionamiento), piSalirEstacionamiento);
 
 
 /*
@@ -128,9 +129,11 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
         mBuilder.setContentIntent(resultPendingIntent);
         */
 
-         mNotificationManager= (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        // mId allows you to update the notification later on.
-        mNotificationManager.notify(idNotificacion, mBuilder.build());
+            mNotificationManager= (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+            // mId allows you to update the notification later on.
+            mNotificationManager.notify(idNotificacion, mBuilder.build());
+
+        }
 
     }
 

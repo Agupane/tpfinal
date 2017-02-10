@@ -2,6 +2,7 @@ package com.example.agustin.tpfinal.Utils;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.agustin.tpfinal.Modelo.Estacionamiento;
@@ -28,17 +30,20 @@ public class EstacionamientoAdapter extends BaseAdapter {
     private LayoutInflater inflater;
     private View row;
     private Button reserva, verMapa;
-    private TextView nombre, direccion, horarios, tarifa;
+    private TextView nombre, direccion, horarios, tarifa, distancia;
+    private ImageView icnTechado, icnTarjeta, icn24hs;
     private Context mCont;
+    private Location ubicacionActual;
 
 
-    public EstacionamientoAdapter(Context context, List<Estacionamiento> listaEstac)
+    public EstacionamientoAdapter(Context context, List<Estacionamiento> listaEstac, Location ubicActual)
     {
         super();
         this.listaEstacionamiento = new ArrayList<Estacionamiento>();
         this.listaEstacionamiento.addAll(listaEstac);
         inflater = LayoutInflater.from(context);
         mCont = context;
+        ubicacionActual = ubicActual;
     }
     @Override
     public int getCount() { return listaEstacionamiento.size() ;    }
@@ -79,6 +84,11 @@ public class EstacionamientoAdapter extends BaseAdapter {
         direccion = (TextView) row.findViewById(R.id.tvDireccionEstacionamiento);
         horarios = (TextView) row.findViewById(R.id.tvHorarioEstacionamiento);
         tarifa = (TextView) row.findViewById(R.id.textViewTarifa);
+        distancia = (TextView) row.findViewById(R.id.textViewDistancia);
+
+        icnTechado = (ImageView) row.findViewById(R.id.imageViewTechado);
+        icnTarjeta = (ImageView) row.findViewById(R.id.imageViewTarjeta);
+        icn24hs = (ImageView) row.findViewById(R.id.imageView24hs);
 
     }
     /**
@@ -86,10 +96,34 @@ public class EstacionamientoAdapter extends BaseAdapter {
      * @param position
      */
     private void llenarAdapter(final int position) {
-        nombre.setText(((Estacionamiento)this.getItem(position)).getNombreEstacionamiento() );
+        nombre.setText((((Estacionamiento)this.getItem(position)).getNombreEstacionamiento()).substring(8) );
         direccion.setText((CharSequence) ((Estacionamiento)this.getItem(position)).getDireccionEstacionamiento());
         horarios.setText(((Estacionamiento)this.getItem(position)).getHorarios());
         tarifa.setText(((Estacionamiento)this.getItem(position)).getTarifaEstacionamiento() );
+        float[] res = new float[3];
+        Location.distanceBetween( //almacena en res[0] la distancia en metros entre dos puntos (en línea recta)
+                ubicacionActual.getLatitude(),
+                ubicacionActual.getLongitude(),
+                ((Estacionamiento)this.getItem(position)).getPosicionEstacionamiento().latitude,
+                ((Estacionamiento)this.getItem(position)).getPosicionEstacionamiento().longitude,
+                res);
+        String distanciaRedondeada = String.format("%.2f", (res[0] / 1000));
+        distancia.setText(distanciaRedondeada+ " KM");
+
+        if(((Estacionamiento)this.getItem(position)).isEsTechado()){
+            icnTechado.setVisibility(View.VISIBLE);
+        }
+        else icnTechado.setVisibility(View.INVISIBLE);
+
+        if(((Estacionamiento)this.getItem(position)).isAceptaTarjetas()){
+            icnTarjeta.setVisibility(View.VISIBLE);
+        }
+        else icnTarjeta.setVisibility(View.INVISIBLE);
+
+        if(((Estacionamiento)this.getItem(position)).getHorarios().contains("24hs")){
+            icn24hs.setVisibility(View.VISIBLE);
+        }
+        else icn24hs.setVisibility(View.INVISIBLE);
 
         verMapa.setOnClickListener(new View.OnClickListener() {
             @Override

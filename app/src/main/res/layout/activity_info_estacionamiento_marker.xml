@@ -19,7 +19,7 @@
             android:text="@string/tvTituloInfoEstacionamientoCalle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/tvInfoEstacionamientoCalle"
+            android:id="@+id/tvLabelInfoEstacionamientoCalle"
             android:layout_weight="1" />
 
         <TextView

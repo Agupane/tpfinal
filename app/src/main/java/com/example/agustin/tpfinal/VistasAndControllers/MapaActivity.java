@@ -5,6 +5,8 @@ import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -35,6 +37,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.example.agustin.tpfinal.Dao.EstacionamientoDAO;
@@ -261,11 +264,15 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 if(this.lugarEstacionamientoGuardado == true) {
                     Log.v(TAG_MENU, "Borrando ubicación guardada");
                     this.marcarSalidaEstacionamiento(markerUltimoEstacionamiento);
+                    markerUltimoEstacionamiento=null;
                 }
                 break;
             }
             case R.id.nav_alarma:{
                 /** TODO - IMPLEMENTAR FUNCIONAMIENTO DEL BOTON DE ALARMA */
+                if(markerUltimoEstacionamiento != null){
+                    this.setearTimer(this);
+                }
                 break;
             }
             default: {
@@ -465,7 +472,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         intent.setAction(String.valueOf(ConstantsNotificaciones.ACCION_GENERAR_ALARMA));
         Integer idPendingIntent = ubicacionVehiculo.getId();
         PendingIntent pi = PendingIntent.getBroadcast(this,idPendingIntent,intent,0);
-        alarmManager.set(AlarmManager.RTC_WAKEUP,ConstantsNotificaciones.TIEMPO_CONFIGURADO_ALARMA,pi);
+        alarmManager.set(AlarmManager.RTC_WAKEUP,System.currentTimeMillis()+ConstantsNotificaciones.TIEMPO_CONFIGURADO_ALARMA,pi);
     }
 
     /**
@@ -886,6 +893,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     public void onClick(View v) {
         if (v.getId() == fab.getId()) {
             Intent intent = new Intent(this, ListarLugaresActivity.class);
+            intent.putExtra("ubicacionActual", ubicacionActual);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         }
@@ -973,5 +981,45 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 break;
             }
         }
+    }
+
+    private void setearTimer(Context context) {
+
+        String msgCancelar = getResources().getString(R.string.btnCancelar);
+        String msgGuardar = getResources().getString(R.string.btnDialogSetearAlarma);
+        String msgTituloDialog = "Temporizador para alarma";
+
+        final Dialog dialogTest = new Dialog(context); // Context, this, etc.
+        dialogTest.setContentView(R.layout.custom_alarm_timer_window);
+        dialogTest.setTitle(msgTituloDialog);
+        dialogTest.setCancelable(true);
+        dialogTest.show();
+
+        Button btnSetearTimer = (Button) dialogTest.findViewById(R.id.btnSetearTimer);
+        Button btnCancelar = (Button) dialogTest.findViewById(R.id.btnDialogCancel);
+        btnSetearTimer.setText(msgGuardar);
+        btnCancelar.setText(msgCancelar);
+
+        TimePicker timePicker = (TimePicker) dialogTest.findViewById(R.id.timePicker);
+        //TODO implementar todos los métodos y listeners para el TimePicker
+
+        /** Listener de la opcion de setear el timer de la alarma */
+        btnSetearTimer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                
+                dialogTest.dismiss();
+            }
+        });
+
+        /** Listener de la opcion de cancelar */
+        btnCancelar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialogTest.dismiss();
+            }
+        });
+
+
     }
 }

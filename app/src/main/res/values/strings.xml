@@ -62,9 +62,10 @@
     <!-- Strings de interfaz de usuario -->
     <string name="titMarcadorEstacionamiento">Ubicacion actual del vehiculo</string>
     <string name="action_estacionar">Estacionar aca</string>
-    <string name="btnAbrirEnNavigator">Navegar al destino.</string>
-    <string name="btnMarcarSalida">Marcar salida del estacionamiento.</string>
-    <string name="tvTituloInfoEstacionamiento">Informacion acerca del aparcamiento:</string>
+    <string name="btnAbrirEnNavigator">Navegar al destino</string>
+    <string name="btnMarcarSalida">Marcar salida del estacionamiento</string>
+    <string name="btnDialogSetearAlarma">Guardar</string>
+    <string name="tvTituloInfoEstacionamiento">Informacion acerca del aparcamiento: </string>
     <string name="tvTituloInfoEstacionamientoCalle">Calle:</string>
     <string name="tvInfoEstacionamientoCalle">CALLE DEFAULT 123</string>
     <string name="tvTituloInfoEstacionamientoCiudad">Ciudad:</string>
