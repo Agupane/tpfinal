@@ -280,6 +280,11 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                 }
                 break;
             }
+            case R.id.nav_reservas: {
+                Intent intent = new Intent(this, ListaReservasActivity.class);
+                startActivity(intent);
+                break;
+            }
             default: {
                 break;
             }

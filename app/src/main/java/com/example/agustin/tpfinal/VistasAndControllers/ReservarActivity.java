@@ -4,6 +4,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -11,14 +12,21 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.agustin.tpfinal.Modelo.Estacionamiento;
+import com.example.agustin.tpfinal.Modelo.ReservaMock;
 import com.example.agustin.tpfinal.R;
 import com.example.agustin.tpfinal.Utils.AlarmEstacionamientoReceiver;
 import com.example.agustin.tpfinal.Utils.ConstantsNotificaciones;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by Nahuel SG on 12/02/2017.
@@ -51,10 +59,39 @@ public class ReservarActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View view) {
         if (view.getId() == botonConfirmar.getId()) {
             agregarAlarma(estacionamientoReserva, position);
+            agregarAListaReservas(estacionamientoReserva);
             //generar reserva
             //intent a la lista o OnBackPressed?
             super.onBackPressed();
         }
+    }
+
+    private void agregarAListaReservas(Estacionamiento estacionamientoReserva) {
+        String nombreEstacionamiento = estacionamientoReserva.getNombreEstacionamiento();
+        String direccionEstacionamiento = estacionamientoReserva.getDireccionEstacionamiento();
+        Gson gson = new Gson();
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat df = new SimpleDateFormat("dd / MMMM / yyyy");
+        String fecha= df.format(c.getTime());
+        df = new SimpleDateFormat("HH:mm:ss");
+        String hora= df.format(c.getTime());
+        ReservaMock res = new ReservaMock(direccionEstacionamiento, nombreEstacionamiento, fecha, hora);
+        List<ReservaMock> reservasViejasList;
+
+        //leer desde SharedPreferences -> el string guardado es un json
+        String listaReservasJson = PreferenceManager.getDefaultSharedPreferences(this).getString("listaReservas", "");
+        if(listaReservasJson.equals("")){
+            reservasViejasList = new ArrayList<ReservaMock>();
+        }
+        else{
+            //obtener la lista de Resultados desde el Json
+            Type type = new TypeToken<List<ReservaMock>>() {}.getType();
+            reservasViejasList = gson.fromJson(listaReservasJson, type);
+        }
+        reservasViejasList.add(res);
+        listaReservasJson = gson.toJson(reservasViejasList);
+        //volver a persistir en SharedPreferences la lista actualizada
+        PreferenceManager.getDefaultSharedPreferences(this).edit().putString("listaReservas", listaReservasJson).apply();
     }
 
 
