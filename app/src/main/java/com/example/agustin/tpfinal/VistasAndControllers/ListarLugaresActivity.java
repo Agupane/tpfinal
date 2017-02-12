@@ -31,7 +31,7 @@ import java.util.Arrays;
 public class ListarLugaresActivity extends AppCompatActivity implements View.OnClickListener {
     private EstacionamientoAdapter adapterEst;
     private ListView listaEst;
-    private Estacionamiento[] Estacionamientos;
+    public static Estacionamiento[] Estacionamientos;
     private Location ubicacionActual;
     /** Dao que almacena ubicacion de Estacionamientos */
     private static final EstacionamientoDAO estacionamientoDAO = EstacionamientoDAO.getInstance();
@@ -71,7 +71,6 @@ public class ListarLugaresActivity extends AppCompatActivity implements View.OnC
         listaEst = (ListView) findViewById(R.id.listLugares);
         adapterEst = new EstacionamientoAdapter(this, Arrays.asList(Estacionamientos), ubicacionActual);
         listaEst.setAdapter(adapterEst);
-        setTitle("Listado de Estacionamientos");
     }
 
     @Override

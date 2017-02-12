@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="160dp"
-    android:background="@drawable/side_nav_bar"
+    android:background="@drawable/img_parking_lot"
     android:gravity="bottom"
     android:orientation="vertical"
     android:paddingBottom="16dp"
@@ -16,15 +16,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingTop="16dp"
-        android:src="@drawable/marker_estacionamiento" />
+        android:src="@drawable/icn_notif" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="16dp"
         android:text="Donde estaciono? - Santa Fe"
-        android:textColor="#000000"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+        android:textColor="@android:color/holo_orange_light"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textStyle="normal|bold"
+        android:textSize="16sp" />
 
     <TextView
         android:id="@+id/textView"
@@ -32,6 +34,6 @@
         android:layout_height="wrap_content"
         android:text="App TP Final - Diseño de aplicaciones móviles"
         android:textSize="10dp"
-        android:textColor="#000000" />
+        android:textColor="@android:color/white" />
 
 </LinearLayout>

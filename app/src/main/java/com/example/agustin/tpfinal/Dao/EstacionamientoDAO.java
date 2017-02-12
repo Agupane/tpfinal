@@ -109,7 +109,6 @@ public class EstacionamientoDAO {
     }
 
     public void inicializarListaEstacionamientos(Context context) throws EstacionamientoException{
-        JSONObject baseDeDatos;
         String jsonString;
         String msg;
         try{

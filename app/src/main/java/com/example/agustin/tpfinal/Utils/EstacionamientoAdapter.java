@@ -1,5 +1,7 @@
 package com.example.agustin.tpfinal.Utils;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
@@ -15,10 +17,15 @@ import android.widget.TextView;
 
 import com.example.agustin.tpfinal.Modelo.Estacionamiento;
 import com.example.agustin.tpfinal.R;
+import com.example.agustin.tpfinal.VistasAndControllers.ListarLugaresActivity;
 import com.example.agustin.tpfinal.VistasAndControllers.MapaActivity;
+import com.example.agustin.tpfinal.VistasAndControllers.ReservarActivity;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -75,9 +82,9 @@ public class EstacionamientoAdapter extends BaseAdapter {
     {
         reserva = (Button) row.findViewById(R.id.botonReservar);
         verMapa = (Button) row.findViewById(R.id.botonVerEnMapa);
-        reserva.setFocusable(false);
+        //reserva.setFocusable(false);
         //reserva.setClickable(false);
-        verMapa.setFocusable(false);
+        //verMapa.setFocusable(false);
         //verMapa.setClickable(false);
 
         nombre = (TextView) row.findViewById(R.id.tvNombreEstacionamiento);
@@ -134,13 +141,12 @@ public class EstacionamientoAdapter extends BaseAdapter {
                     System.out.println("(ADAPTER) Tocaste VER MAPA de la pos: " + position);
 
                     //Lanza un intent, mCont es el contexto que contiene el adapter
-                    // Enviar la LatLng del lugar... TODO esto
                     LatLng latLngToMap = listaEstacionamiento.get(position).getPosicionEstacionamiento();
                     Bundle args = new Bundle();
                     args.putParcelable("latlong", latLngToMap);
                     //Hago el intent y envio el dato
                     mCont.startActivity((new Intent(mCont, MapaActivity.class))
-                            /**.putExtra("latLng",latLngToSend)*/ .putExtra("bundle", args)
+                            .putExtra("bundle", args)
                             .putExtra("bandera", "VER")
                             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                 }
@@ -152,9 +158,11 @@ public class EstacionamientoAdapter extends BaseAdapter {
             public void onClick(View v) {
                 int idView = v.getId();
                 if(idView == R.id.botonReservar){
-                    System.out.println("(ADAPTER) Tocaste RESERVAR de la pos: " + position);
+                    Intent in = new Intent(mCont, ReservarActivity.class);
+                    in.putExtra("indice", position);
+                    mCont.startActivity(in);
 
-                    // TODO Reserva
+                    // TODO Reserva (implementacion a futuro...)
                     //reservar(position);
                 }
             }
@@ -172,6 +180,5 @@ public class EstacionamientoAdapter extends BaseAdapter {
         notifyDataSetChanged();
 
     }
-
 
 }

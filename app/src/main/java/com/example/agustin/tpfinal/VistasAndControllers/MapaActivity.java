@@ -32,6 +32,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -166,11 +167,12 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         menuLateral = navigationView.getMenu();
+        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(false);
+        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(false);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener((View.OnClickListener) this);
+        fab.setOnClickListener(this);
         mapaMarcadores = new HashMap<>();
-
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
@@ -249,6 +251,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                     this.lugarEstacionamientoGuardado = true;
                     item.setTitle(dondeEstacione);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(true);
+                    menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(true);
                 }
                 else {
                     /** Se ejecuta si el vehiculo se encuentra actualmente estacionado */
@@ -306,6 +309,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
      */
     private void cargarMapa(){
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mapa.setPadding(0,80,0,0);
             mapa.setMyLocationEnabled(true);
             mapa.setOnInfoWindowClickListener(this);
             mapa.setInfoWindowAdapter(ventanaInfo);
@@ -569,6 +573,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                     btnSalidaEntrada.setText(msgSalidaEstacionamiento);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgSalidaEstacionamiento);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(true);
+                    menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(true);
                     dialogTest.dismiss();
                 }
                 else {
@@ -583,6 +588,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                         btnSalidaEntrada.setText(msgEstacionarAqui);
                         menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgEstacionarAqui);
                         menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(false);
+                        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(false);
                         dialogTest.dismiss();
                     }
                 }
@@ -809,6 +815,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
         this.lugarEstacionamientoGuardado = false;
         (menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI)).setTitle(estacionarAqui);
         menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(false);
+        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(false);
     }
 
     /**
@@ -905,25 +912,31 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
     public void onBackPressed() {
         //Checking for fragment count on backstack
         String msg;
-        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportFragmentManager().popBackStack();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if(drawer.isDrawerOpen(Gravity.LEFT)){
+            drawer.closeDrawer(Gravity.LEFT);
         }
-        else if (!doubleBackToExitPressedOnce) {
-            this.doubleBackToExitPressedOnce = true;
-            msg = getResources().getString(R.string.presionarAtrasParaSalir);
-            Toast.makeText(this,msg, Toast.LENGTH_SHORT).show();
+        else{
+            if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                getSupportFragmentManager().popBackStack();
+            }
+            else if (!doubleBackToExitPressedOnce) {
+                this.doubleBackToExitPressedOnce = true;
+                msg = getResources().getString(R.string.presionarAtrasParaSalir);
+                Toast.makeText(this,msg, Toast.LENGTH_SHORT).show();
 
-            new Handler().postDelayed(new Runnable() {
+                new Handler().postDelayed(new Runnable() {
 
-                @Override
-                public void run() {
-                    doubleBackToExitPressedOnce = false;
-                }
-            }, 2000);
-        }
-        else {
-            super.onBackPressed();
-            return;
+                    @Override
+                    public void run() {
+                        doubleBackToExitPressedOnce = false;
+                    }
+                }, 2000);
+            }
+            else {
+                super.onBackPressed();
+                return;
+            }
         }
     }
 
