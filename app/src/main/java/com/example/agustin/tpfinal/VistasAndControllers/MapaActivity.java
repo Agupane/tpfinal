@@ -38,6 +38,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -775,19 +776,46 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
         texto.append(tiempoDeIngreso);
         texto.append(" , desea marcar la salida del estacionamiento?");
 
-        /*
-            final Dialog dialogTest = new Dialog(this);
-            dialogTest.setContentView(R.layout.custom_info_window_estacionamiento);
-            dialogTest.setTitle(titulo);
-            dialogTest.setCancelable(true);
-            dialogTest.show();
+        final Dialog dialogTest = new Dialog(this);
+        dialogTest.setContentView(R.layout.custom_info_windows_alert_recodatorio_estacionamiento);
+        dialogTest.setTitle(titulo);
+        dialogTest.setCancelable(true);
+        dialogTest.show();
+        Button btnAceptar = (Button) dialogTest.findViewById(R.id.btnAceptar);
+        Button btnIrAlEstacionamiento = (Button) dialogTest.findViewById(R.id.btnIrAlEstacionamiento);
+        Button btnCancelar = (Button) dialogTest.findViewById(R.id.btnCancelar);
+        TextView msgDialog = (TextView) dialogTest.findViewById(R.id.tvMsgRecordatorio);
+        msgDialog.setText(texto);
+        /** Listener de la opcion de ir a la ubicacion del estacionamiento */
+        btnIrAlEstacionamiento.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Location lugarEstacionado = new Location(ubicacionActual);
+                lugarEstacionado.setLatitude(ubicacionEstacionamiento.getCoordenadas().latitude);
+                lugarEstacionado.setLongitude(ubicacionEstacionamiento.getCoordenadas().longitude);
+                enfocarMapaEnUbicacion(lugarEstacionado);
+                dialogTest.dismiss();
+            }
+        });
 
-            Button btnSi = (Button) dialogTest.findViewById(R.id.btnAceptar);
-            Button btnIrAlEstacionamiento = (Button) dialogTest.findViewById(R.id.btnIr_Al_Estacionamiento);
-            Button btnCancelar = (Button) dialogTest.findViewById(R.id.btnCancelar);
-            
-         */
+        btnAceptar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String estacionarAqui = getResources().getString(R.string.menuOptEstacionarAqui);
+                marcarSalidaEstacionamiento(markerUltimoEstacionamiento);
+                menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(estacionarAqui);
+                dialogTest.dismiss();
+            }
+        });
 
+        btnCancelar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                agregarAlarma(markerUltimoEstacionamiento);
+                dialogTest.dismiss();
+            }
+        });
+/*
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(titulo)
                 .setMessage(texto)
@@ -817,6 +845,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
 
         dialogInfoVehiculoEstacionado = builder.create();
         dialogInfoVehiculoEstacionado.show();
+        */
     }
 
     /**

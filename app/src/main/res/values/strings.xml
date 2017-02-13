@@ -64,13 +64,15 @@
     <string name="action_estacionar">Estacionar aca</string>
     <string name="btnAbrirEnNavigator">Navegar al destino</string>
     <string name="btnMarcarSalida">Marcar salida del estacionamiento</string>
+    <string name="btnAceptar">Aceptar</string>
+    <string name="btnCancelar">Cancelar</string>
+    <string name="btnIrAlEstacionamiento">Ir al estacionamiento.</string>
     <string name="btnDialogSetearAlarma">Guardar</string>
     <string name="tvTituloInfoEstacionamiento">Informacion acerca del aparcamiento: </string>
     <string name="tvTituloInfoEstacionamientoCalle">Calle:</string>
     <string name="tvInfoEstacionamientoCalle">CALLE DEFAULT 123</string>
     <string name="tvTituloInfoEstacionamientoCiudad">Ciudad:</string>
     <string name="tvInfoEstacionamientoCiudad">CIUDAD DEFAULT 123</string>
-    <string name="btnCancelar">Cancelar</string>
     <string name="errorProducidoIntenteNuevamente">Se produjo un error al procesar su solicitud, por favor intente nuevamente</string>
     <string name="tituloSolicitudPermisos">Permisos de requeridos</string>
     <string name="mensajeSolicitudPermisos">Para poder continuar, es necesario solicitar un conjunto de permisos, desea hacerlo?</string>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -8,16 +9,18 @@
         android:text="TextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/tw_texto"
+        android:id="@+id/tvMsgRecordatorio"
         android:layout_weight="1"
         android:textColor="@android:color/darker_gray"
         android:textSize="16sp"
         android:gravity="end"
-        android:paddingEnd="5dp"/>
+        android:paddingEnd="5dp"
+        android:paddingRight="5dp"
+        tools:ignore="RtlSymmetry" />
 
     <Button
-        android:text="Si"
-        android:id="@+id/btn_si"
+        android:text="@string/btnAceptar"
+        android:id="@+id/btnAceptar"
         android:textColor="#383838"
 
         android:layout_width="match_parent"
@@ -32,8 +35,8 @@
         android:shadowRadius="5" />
 
     <Button
-        android:text="No"
-        android:id="@+id/btn_No"
+        android:text="@string/btnCancelar"
+        android:id="@+id/btnCancelar"
         android:textColor="#383838"
 
         android:layout_width="match_parent"
@@ -48,8 +51,8 @@
         android:shadowRadius="5" />
 
     <Button
-        android:text="Ir al estacionamiento"
-        android:id="@+id/btn_ir"
+        android:text="@string/btnIrAlEstacionamiento"
+        android:id="@+id/btnIrAlEstacionamiento"
         android:textColor="#383838"
 
         android:layout_width="match_parent"
