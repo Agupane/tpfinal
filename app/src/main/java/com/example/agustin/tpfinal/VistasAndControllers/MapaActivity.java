@@ -191,16 +191,19 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
 
         //Aca hago el primer try para intentar leer el archivo que tiene la lista de estacionamientos
         //Si no existe, lo creo, lo lleno (harcodeado..!) y lo leo
+        /** TODO CAMBIAR ESTO */
         try {
             Estacionamientos = estacionamientoDAO.llenarEstacionamientos(this);
-        } catch (EstacionamientoException e) {
+        }
+        catch (EstacionamientoException e) {
             //TODO manejar la excepcion
             String msgLog = "No se pudo leer el archivo";
             Log.v(TAG,msgLog);
             try {
                 estacionamientoDAO.inicializarListaEstacionamientos(this);
                 Estacionamientos = estacionamientoDAO.llenarEstacionamientos(this);
-            } catch (EstacionamientoException e1) {
+            }
+            catch (EstacionamientoException e1) {
                 msgLog = "Hubo un error al crear el archivo con la lista de Estacionamientos.";
                 Log.v(TAG,msgLog);
             }
@@ -566,6 +569,14 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                 dialogTest.dismiss();
             }
         });
+
+        if(lugarEstacionamientoGuardado == true && marker.getId().equals(markerUltimoEstacionamiento.getId())){
+            btnSalidaEntrada.setEnabled(true);
+        }
+        else{
+            btnSalidaEntrada.setEnabled(false);
+        }
+
         /** Listener de la opcion de marcar salida del estacionamiento */
         btnSalidaEntrada.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -685,7 +696,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
             //Le doy zoom
             mapa.animateCamera(CameraUpdateFactory.zoomTo(17f));
             //TODO  Sacar el toast en un futuro
-            Toast.makeText(this, msgToast, Toast.LENGTH_LONG).show();
+          //  Toast.makeText(this, msgToast, Toast.LENGTH_LONG).show();
         }
         else{
             msg = getResources().getString(R.string.ubicacionActualInexistente);
@@ -743,6 +754,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                 msg = getResources().getString(R.string.menuOptDondeEstacione);
                 menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msg);
                 menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setChecked(true);
+                menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(true);
             }
         }
         return ultimoEst;
@@ -804,7 +816,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
         String estacionarAqui = getResources().getString(R.string.menuOptEstacionarAqui);
         String dondeEstacione = getResources().getString(R.string.menuOptDondeEstacione);
         UbicacionVehiculoEstacionado ubicacionVehiculo = (UbicacionVehiculoEstacionado) marcadorSalida.getTag();
-        ubicacionVehiculo.setHoraEgreso(System.currentTimeMillis());
+            ubicacionVehiculo.setHoraEgreso(System.currentTimeMillis());
         try{
             /* Elimino la alarma que se asocia al estacionamiento del usuario */
             eliminarAlarma(markerUltimoEstacionamiento);

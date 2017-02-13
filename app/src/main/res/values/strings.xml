@@ -82,6 +82,6 @@
 
     <string name="menuOptEstacionarAqui">Estacionar aquí</string>
     <string name="menuOptDondeEstacione">Donde estacioné?</string>
-    <string name="menuDialogTitulo">Opciones de estacionamiento</string>
+    <string name="menuDialogTitulo">Opciones</string>
 
 </resources>
