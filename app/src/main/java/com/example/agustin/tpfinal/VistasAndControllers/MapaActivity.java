@@ -775,6 +775,19 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
         texto.append(tiempoDeIngreso);
         texto.append(" , desea marcar la salida del estacionamiento?");
 
+        /*
+            final Dialog dialogTest = new Dialog(this);
+            dialogTest.setContentView(R.layout.custom_info_window_estacionamiento);
+            dialogTest.setTitle(titulo);
+            dialogTest.setCancelable(true);
+            dialogTest.show();
+
+            Button btnSi = (Button) dialogTest.findViewById(R.id.btnAceptar);
+            Button btnIrAlEstacionamiento = (Button) dialogTest.findViewById(R.id.btnIr_Al_Estacionamiento);
+            Button btnCancelar = (Button) dialogTest.findViewById(R.id.btnCancelar);
+            
+         */
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(titulo)
                 .setMessage(texto)
