@@ -65,6 +65,7 @@ import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -542,15 +543,15 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                         }
                     }
             );*/
-        final Dialog dialogTest = new Dialog(this); // Context, this, etc.
-        dialogTest.setContentView(R.layout.custom_info_window_estacionamiento);
-        dialogTest.setTitle(msgTituloDialog);
-        dialogTest.setCancelable(true);
-        dialogTest.show();
+        final Dialog dialog = new Dialog(this); // Context, this, etc.
+        dialog.setContentView(R.layout.custom_info_window_estacionamiento);
+        dialog.setTitle(msgTituloDialog);
+        dialog.setCancelable(true);
+        dialog.show();
 
-        Button btnAbrirNavigator = (Button) dialogTest.findViewById(R.id.btnNavegar);
-        final Button btnSalidaEntrada = (Button) dialogTest.findViewById(R.id.btnSalir_EntrarEstacionamiento);
-        Button btnCancelar = (Button) dialogTest.findViewById(R.id.btnCancelar);
+        Button btnAbrirNavigator = (Button) dialog.findViewById(R.id.btnNavegar);
+        final Button btnSalidaEntrada = (Button) dialog.findViewById(R.id.btnSalir_EntrarEstacionamiento);
+        Button btnCancelar = (Button) dialog.findViewById(R.id.btnCancelar);
         btnAbrirNavigator.setText(msgNavegar);
         if(lugarEstacionamientoGuardado == false){
             btnSalidaEntrada.setText(msgEstacionarAqui);
@@ -564,7 +565,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
             @Override
             public void onClick(View v) {
                 abrirNavigatorEnDestino(marcadorSelected);
-                dialogTest.dismiss();
+                dialog.dismiss();
             }
         });
         /** Listener de la opcion de marcar salida del estacionamiento */
@@ -580,7 +581,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgSalidaEstacionamiento);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(true);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(true);
-                    dialogTest.dismiss();
+                    dialog.dismiss();
                 }
                 else {
                     /** Se ejecuta si el vehiculo se encuentra actualmente estacionado */
@@ -595,7 +596,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                         menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgEstacionarAqui);
                         menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(false);
                         menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(false);
-                        dialogTest.dismiss();
+                        dialog.dismiss();
                     }
                 }
                 marcarSalidaEstacionamiento(marcadorSelected);
@@ -605,7 +606,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
         btnCancelar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialogTest.dismiss();
+                dialog.dismiss();
             }
         });
 
@@ -680,11 +681,11 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
             this.mapa.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()));*/
             String msgToast = location.getLatitude() + ", " + location.getLongitude();
 
-            //Muevo la camara
-            mapa.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(),location.getLongitude())));
 
+            //Muevo la camara
             //Le doy zoom
-            mapa.animateCamera(CameraUpdateFactory.zoomTo(17f));
+            mapa.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(),location.getLongitude()), 16f), 200,null);
+
             //TODO  Sacar el toast en un futuro
             Toast.makeText(this, msgToast, Toast.LENGTH_LONG).show();
         }
