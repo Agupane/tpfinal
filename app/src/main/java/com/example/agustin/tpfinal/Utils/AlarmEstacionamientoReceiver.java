@@ -36,6 +36,8 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
     private static Context context;
     /** Id con el que se identifica una notificacion de otra */
     private static Integer idNotificacion = 1;
+    private static String tiempoGeneraReserva;
+    private static String nombreEst;
 
     /** Dao que almacena ubicacion de vehiculos estacionados */
     private static final UbicacionVehiculoEstacionadoDAO ubicacionVehiculoDAO = UbicacionVehiculoEstacionadoDAO.getInstance();
@@ -46,14 +48,26 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         this.context = context;
         String s = intent.getAction();
-        if (s.equals(ConstantsNotificaciones.ACCION_GENERAR_ALARMA)) {
+        if (s.equals(ConstantsNotificaciones.ACCION_GENERAR_ALARMA) && (ubicacionEstacionamiento != null)) {
             String msg,idMarcador;
             idMarcador = intent.getStringExtra("idMarcador");
             markerEstacionamiento = mapaMarcadores.get(idMarcador);
             ubicacionEstacionamiento = (UbicacionVehiculoEstacionado) markerEstacionamiento.getTag();
             idNotificacion = 1;
-            generarNotificacion();
+            generarNotificacion(context.getResources().getString(R.string.notificacionAlarmaEstTexto), context.getResources().getString(R.string.notificacionAlarmaEstTitulo));
             msg = context.getResources().getString(R.string.alarmEstacionamientoGenerada);
+            Log.d(TAG, msg);
+        }
+        else if (s.equals(ConstantsNotificaciones.ACCION_GENERAR_RESERVA)) {
+            //TODO configurar y generar notificacion
+            String msg,idMarcador;
+            idMarcador = intent.getStringExtra("idMarcador");
+            tiempoGeneraReserva = intent.getStringExtra("horaReserva");
+            nombreEst = intent.getStringExtra("nombreEstac");
+            markerEstacionamiento = mapaMarcadores.get(idMarcador);
+            idNotificacion = 2;
+            generarNotificacion("Su reserva está por caducar", "Recordatorio reserva");
+            msg = "Se produjo una alarma asociada a una reserva";
             Log.d(TAG, msg);
         }
         else if (s.equals(ConstantsNotificaciones.ACCION_NOTIFICACION_IGNORAR_ALARMA)) {
@@ -67,20 +81,24 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
 
     /**
      * Genera una notificacion
-     * TODO - ACOMODAR PARA GENERAR LA ALARMA PORQUE ES MUY CORTO (DEBERIA DE SER UNA HORA DESDE EL MOMENTO EN DONDE SE ESTACIONA O SE
-     * POSPONE LA ALARMA, MIRAR ESE NUMERO EN ConstansNotificaciones
      */
-    private void generarNotificacion(){
+    private void generarNotificacion(String textoDefault, String titulo){
         String tiempoDeIngreso;
-        String textoDefault = context.getResources().getString(R.string.notificacionAlarmaEstTexto);
-        String titulo = context.getResources().getString(R.string.notificacionAlarmaEstTitulo);
-
-        /* Creo el texto a mostrar en caso de que se pueda generar una notificacion big text */
         StringBuilder texto = new StringBuilder();
-        texto.append("Su vehiculo se encuentra estacionado desde las ");
-        Date date = new Date(ubicacionEstacionamiento.getHoraIngreso());
-        tiempoDeIngreso = new SimpleDateFormat("HH:mm").format(date);
-        texto.append(tiempoDeIngreso);
+        if(ubicacionEstacionamiento != null){
+            /* Creo el texto a mostrar en caso de que se pueda generar una notificacion big text */
+            texto.append("Su vehiculo se encuentra estacionado desde las ");
+            Date date = new Date(ubicacionEstacionamiento.getHoraIngreso());
+            tiempoDeIngreso = new SimpleDateFormat("HH:mm").format(date);
+            texto.append(tiempoDeIngreso);
+        }
+        else{
+            texto.append("Su reserva generada a las ");
+            texto.append(tiempoGeneraReserva);
+            texto.append(" en el estacionamiento ");
+            texto.append(nombreEst);
+            texto.append(" está a punto de expirar.");
+        }
 
         /* Creo los botones de la notificacion */
         Intent ignorarAlarmaIntent = new Intent(context,AlarmEstacionamientoReceiver.class);
@@ -94,7 +112,7 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
-                        .setSmallIcon(R.drawable.marker_estacionamiento)
+                        .setSmallIcon(R.drawable.icn_notif)
                         .setContentTitle(titulo)
                         .setContentText(textoDefault)
                         .setAutoCancel(true)
@@ -106,29 +124,7 @@ public class AlarmEstacionamientoReceiver extends BroadcastReceiver {
                         .addAction (R.drawable.ic_parking_24dp,
                                 getString(R.string.btnSalirEstacionamiento), piSalirEstacionamiento);
 
-
-/*
-        // Creates an explicit intent for an Activity in your app
-        Intent resultIntent = new Intent(context, MapaActivity.class);
-
-        // The stack builder object will contain an artificial back stack for the
-        // started Activity.
-        // This ensures that navigating backward from the Activity leads out of
-        // your application to the Home screen.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-        // Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(MapaActivity.class);
-        // Adds the Intent that starts the Activity to the top of the stack
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-        mBuilder.setContentIntent(resultPendingIntent);
-        */
-
-         mNotificationManager= (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager= (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         // mId allows you to update the notification later on.
         mNotificationManager.notify(idNotificacion, mBuilder.build());
 

@@ -1,7 +1,10 @@
 package com.example.agustin.tpfinal.Utils;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,14 +12,20 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.agustin.tpfinal.Modelo.Estacionamiento;
 import com.example.agustin.tpfinal.R;
+import com.example.agustin.tpfinal.VistasAndControllers.ListarLugaresActivity;
 import com.example.agustin.tpfinal.VistasAndControllers.MapaActivity;
+import com.example.agustin.tpfinal.VistasAndControllers.ReservarActivity;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -28,17 +37,20 @@ public class EstacionamientoAdapter extends BaseAdapter {
     private LayoutInflater inflater;
     private View row;
     private Button reserva, verMapa;
-    private TextView nombre, direccion, horarios, tarifa;
+    private TextView nombre, direccion, horarios, tarifa, distancia;
+    private ImageView icnTechado, icnTarjeta, icn24hs;
     private Context mCont;
+    private Location ubicacionActual;
 
 
-    public EstacionamientoAdapter(Context context, List<Estacionamiento> listaEstac)
+    public EstacionamientoAdapter(Context context, List<Estacionamiento> listaEstac, Location ubicActual)
     {
         super();
         this.listaEstacionamiento = new ArrayList<Estacionamiento>();
         this.listaEstacionamiento.addAll(listaEstac);
         inflater = LayoutInflater.from(context);
         mCont = context;
+        ubicacionActual = ubicActual;
     }
     @Override
     public int getCount() { return listaEstacionamiento.size() ;    }
@@ -70,15 +82,20 @@ public class EstacionamientoAdapter extends BaseAdapter {
     {
         reserva = (Button) row.findViewById(R.id.botonReservar);
         verMapa = (Button) row.findViewById(R.id.botonVerEnMapa);
-        reserva.setFocusable(false);
+        //reserva.setFocusable(false);
         //reserva.setClickable(false);
-        verMapa.setFocusable(false);
+        //verMapa.setFocusable(false);
         //verMapa.setClickable(false);
 
         nombre = (TextView) row.findViewById(R.id.tvNombreEstacionamiento);
         direccion = (TextView) row.findViewById(R.id.tvDireccionEstacionamiento);
         horarios = (TextView) row.findViewById(R.id.tvHorarioEstacionamiento);
         tarifa = (TextView) row.findViewById(R.id.textViewTarifa);
+        distancia = (TextView) row.findViewById(R.id.textViewDistancia);
+
+        icnTechado = (ImageView) row.findViewById(R.id.imageViewTechado);
+        icnTarjeta = (ImageView) row.findViewById(R.id.imageViewTarjeta);
+        icn24hs = (ImageView) row.findViewById(R.id.imageView24hs);
 
     }
     /**
@@ -86,10 +103,34 @@ public class EstacionamientoAdapter extends BaseAdapter {
      * @param position
      */
     private void llenarAdapter(final int position) {
-        nombre.setText(((Estacionamiento)this.getItem(position)).getNombreEstacionamiento() );
+        nombre.setText((((Estacionamiento)this.getItem(position)).getNombreEstacionamiento()).substring(8) );
         direccion.setText((CharSequence) ((Estacionamiento)this.getItem(position)).getDireccionEstacionamiento());
         horarios.setText(((Estacionamiento)this.getItem(position)).getHorarios());
         tarifa.setText(((Estacionamiento)this.getItem(position)).getTarifaEstacionamiento() );
+        float[] res = new float[3];
+        Location.distanceBetween( //almacena en res[0] la distancia en metros entre dos puntos (en línea recta)
+                ubicacionActual.getLatitude(),
+                ubicacionActual.getLongitude(),
+                ((Estacionamiento)this.getItem(position)).getPosicionEstacionamiento().latitude,
+                ((Estacionamiento)this.getItem(position)).getPosicionEstacionamiento().longitude,
+                res);
+        String distanciaRedondeada = String.format("%.2f", (res[0] / 1000));
+        distancia.setText(distanciaRedondeada+ " KM");
+
+        if(((Estacionamiento)this.getItem(position)).isEsTechado()){
+            icnTechado.setVisibility(View.VISIBLE);
+        }
+        else icnTechado.setVisibility(View.INVISIBLE);
+
+        if(((Estacionamiento)this.getItem(position)).isAceptaTarjetas()){
+            icnTarjeta.setVisibility(View.VISIBLE);
+        }
+        else icnTarjeta.setVisibility(View.INVISIBLE);
+
+        if(((Estacionamiento)this.getItem(position)).getHorarios().contains("24hs")){
+            icn24hs.setVisibility(View.VISIBLE);
+        }
+        else icn24hs.setVisibility(View.INVISIBLE);
 
         verMapa.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,13 +141,12 @@ public class EstacionamientoAdapter extends BaseAdapter {
                     System.out.println("(ADAPTER) Tocaste VER MAPA de la pos: " + position);
 
                     //Lanza un intent, mCont es el contexto que contiene el adapter
-                    // Enviar la LatLng del lugar... TODO esto
                     LatLng latLngToMap = listaEstacionamiento.get(position).getPosicionEstacionamiento();
                     Bundle args = new Bundle();
                     args.putParcelable("latlong", latLngToMap);
                     //Hago el intent y envio el dato
                     mCont.startActivity((new Intent(mCont, MapaActivity.class))
-                            /**.putExtra("latLng",latLngToSend)*/ .putExtra("bundle", args)
+                            .putExtra("bundle", args)
                             .putExtra("bandera", "VER")
                             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP));
                 }
@@ -118,9 +158,11 @@ public class EstacionamientoAdapter extends BaseAdapter {
             public void onClick(View v) {
                 int idView = v.getId();
                 if(idView == R.id.botonReservar){
-                    System.out.println("(ADAPTER) Tocaste RESERVAR de la pos: " + position);
+                    Intent in = new Intent(mCont, ReservarActivity.class);
+                    in.putExtra("indice", position);
+                    mCont.startActivity(in);
 
-                    // TODO Reserva
+                    // TODO Reserva (implementacion a futuro...)
                     //reservar(position);
                 }
             }
@@ -138,6 +180,5 @@ public class EstacionamientoAdapter extends BaseAdapter {
         notifyDataSetChanged();
 
     }
-
 
 }

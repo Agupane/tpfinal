@@ -6,6 +6,8 @@ import android.app.ActivityOptions;
 import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -31,11 +33,13 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.example.agustin.tpfinal.Dao.EstacionamientoDAO;
@@ -81,7 +85,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MapaActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
+public class MapaActivity extends AppCompatActivity implements TimePicker.OnTimeChangedListener, NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, AddressResultReceiver.Receiver,ResultCallback, View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
     /** Mapa de google a mostrar */
     private GoogleMap mapa;
     /** Cliente de api de google para utilizar el servicio de localizacion */
@@ -146,6 +150,8 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     private static Menu menuLateral;
     /** Objeto que representa el cuadro de dialogo que brinda informacion en caso de que el vehiculo se encuentre estacionado X Tiempo */
     private static AlertDialog dialogInfoVehiculoEstacionado;
+    private int pickerHour = 0;
+    private int pickerMin = 0;
 
 
     @Override
@@ -162,11 +168,12 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         menuLateral = navigationView.getMenu();
+        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(false);
+        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(false);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener((View.OnClickListener) this);
+        fab.setOnClickListener(this);
         mapaMarcadores = new HashMap<>();
-
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
@@ -245,6 +252,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                     this.lugarEstacionamientoGuardado = true;
                     item.setTitle(dondeEstacione);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(true);
+                    menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(true);
                 }
                 else {
                     /** Se ejecuta si el vehiculo se encuentra actualmente estacionado */
@@ -262,11 +270,20 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 if(this.lugarEstacionamientoGuardado == true) {
                     Log.v(TAG_MENU, "Borrando ubicación guardada");
                     this.marcarSalidaEstacionamiento(markerUltimoEstacionamiento);
+                    markerUltimoEstacionamiento=null;
                 }
                 break;
             }
             case R.id.nav_alarma:{
                 /** TODO - IMPLEMENTAR FUNCIONAMIENTO DEL BOTON DE ALARMA */
+                if(markerUltimoEstacionamiento != null){
+                    this.setearTimer(this);
+                }
+                break;
+            }
+            case R.id.nav_reservas: {
+                Intent intent = new Intent(this, ListaReservasActivity.class);
+                startActivity(intent);
                 break;
             }
             default: {
@@ -298,6 +315,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
      */
     private void cargarMapa(){
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mapa.setPadding(0,80,0,0);
             mapa.setMyLocationEnabled(true);
             mapa.setOnInfoWindowClickListener(this);
             mapa.setInfoWindowAdapter(ventanaInfo);
@@ -466,7 +484,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         intent.setAction(String.valueOf(ConstantsNotificaciones.ACCION_GENERAR_ALARMA));
         Integer idPendingIntent = ubicacionVehiculo.getId();
         PendingIntent pi = PendingIntent.getBroadcast(this,idPendingIntent,intent,0);
-        alarmManager.set(AlarmManager.RTC_WAKEUP,ConstantsNotificaciones.TIEMPO_CONFIGURADO_ALARMA,pi);
+        alarmManager.set(AlarmManager.RTC_WAKEUP,System.currentTimeMillis()+ConstantsNotificaciones.TIEMPO_CONFIGURADO_ALARMA,pi);
     }
 
     /**
@@ -561,6 +579,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                     btnSalidaEntrada.setText(msgSalidaEstacionamiento);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgSalidaEstacionamiento);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(true);
+                    menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(true);
                     dialogTest.dismiss();
                 }
                 else {
@@ -575,6 +594,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                         btnSalidaEntrada.setText(msgEstacionarAqui);
                         menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgEstacionarAqui);
                         menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(false);
+                        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(false);
                         dialogTest.dismiss();
                     }
                 }
@@ -801,6 +821,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         this.lugarEstacionamientoGuardado = false;
         (menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI)).setTitle(estacionarAqui);
         menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(false);
+        menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(false);
     }
 
     /**
@@ -887,6 +908,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     public void onClick(View v) {
         if (v.getId() == fab.getId()) {
             Intent intent = new Intent(this, ListarLugaresActivity.class);
+            intent.putExtra("ubicacionActual", ubicacionActual);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent, ActivityOptions
                     .makeSceneTransitionAnimation(this).toBundle());
@@ -897,25 +919,31 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
     public void onBackPressed() {
         //Checking for fragment count on backstack
         String msg;
-        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportFragmentManager().popBackStack();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if(drawer.isDrawerOpen(Gravity.LEFT)){
+            drawer.closeDrawer(Gravity.LEFT);
         }
-        else if (!doubleBackToExitPressedOnce) {
-            this.doubleBackToExitPressedOnce = true;
-            msg = getResources().getString(R.string.presionarAtrasParaSalir);
-            Toast.makeText(this,msg, Toast.LENGTH_SHORT).show();
+        else{
+            if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+                getSupportFragmentManager().popBackStack();
+            }
+            else if (!doubleBackToExitPressedOnce) {
+                this.doubleBackToExitPressedOnce = true;
+                msg = getResources().getString(R.string.presionarAtrasParaSalir);
+                Toast.makeText(this,msg, Toast.LENGTH_SHORT).show();
 
-            new Handler().postDelayed(new Runnable() {
+                new Handler().postDelayed(new Runnable() {
 
-                @Override
-                public void run() {
-                    doubleBackToExitPressedOnce = false;
-                }
-            }, 2000);
-        }
-        else {
-            super.onBackPressed();
-            return;
+                    @Override
+                    public void run() {
+                        doubleBackToExitPressedOnce = false;
+                    }
+                }, 2000);
+            }
+            else {
+                super.onBackPressed();
+                return;
+            }
         }
     }
 
@@ -975,5 +1003,53 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
                 break;
             }
         }
+    }
+
+    private void setearTimer(final Context context) {
+
+        String msgCancelar = getResources().getString(R.string.btnCancelar);
+        String msgGuardar = getResources().getString(R.string.btnDialogSetearAlarma);
+        String msgTituloDialog = "Temporizador para alarma";
+
+        final Dialog dialogTest = new Dialog(context); // Context, this, etc.
+        dialogTest.setContentView(R.layout.custom_alarm_timer_window);
+        dialogTest.setTitle(msgTituloDialog);
+        dialogTest.setCancelable(true);
+        dialogTest.show();
+
+        Button btnSetearTimer = (Button) dialogTest.findViewById(R.id.btnSetearTimer);
+        Button btnCancelar = (Button) dialogTest.findViewById(R.id.btnDialogCancel);
+        btnSetearTimer.setText(msgGuardar);
+        btnCancelar.setText(msgCancelar);
+
+        TimePicker timePicker = (TimePicker) dialogTest.findViewById(R.id.timePicker);
+        timePicker.setIs24HourView(true);
+        timePicker.setOnTimeChangedListener((TimePicker.OnTimeChangedListener) context);
+        //TODO implementar todos los métodos TimePicker! (validaciones, etc)
+
+        /** Listener de la opcion de setear el timer de la alarma */
+        btnSetearTimer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO setear alarma/timer
+                dialogTest.dismiss();
+            }
+        });
+
+        /** Listener de la opcion de cancelar */
+        btnCancelar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialogTest.dismiss();
+            }
+        });
+
+
+    }
+
+    @Override
+    public void onTimeChanged(TimePicker timePicker, int hourOfDay, int minute) {
+        pickerHour = hourOfDay;
+        pickerMin = minute;
     }
 }
