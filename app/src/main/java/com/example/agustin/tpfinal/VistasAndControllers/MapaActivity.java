@@ -2,6 +2,7 @@ package com.example.agustin.tpfinal.VistasAndControllers;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.ActivityOptions;
 import android.app.AlarmManager;
 import android.app.Dialog;
 import android.app.PendingIntent;
@@ -193,7 +194,7 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
             try {
                 estacionamientoDAO.inicializarListaEstacionamientos(this);
                 Estacionamientos = estacionamientoDAO.llenarEstacionamientos(this);
-            } catch (EstacionamientoException e1) {
+             } catch (EstacionamientoException e1) {
                 msgLog = "Hubo un error al crear el archivo con la lista de Estacionamientos.";
                 Log.v(TAG,msgLog);
             }
@@ -887,7 +888,8 @@ public class MapaActivity extends AppCompatActivity implements NavigationView.On
         if (v.getId() == fab.getId()) {
             Intent intent = new Intent(this, ListarLugaresActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
+            startActivity(intent, ActivityOptions
+                    .makeSceneTransitionAnimation(this).toBundle());
         }
     }
 
