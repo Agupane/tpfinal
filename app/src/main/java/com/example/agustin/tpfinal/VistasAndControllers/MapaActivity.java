@@ -516,35 +516,12 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
         String msgNavegar = getResources().getString(R.string.btnAbrirEnNavigator);
         String msgCancelar = getResources().getString(R.string.btnCancelar);
         String msgTituloDialog = getResources().getString(R.string.menuDialogTitulo);
-        /*
-        // Crear un buildery vincularlo a la actividad que lo mostrará
-        LayoutInflater linf = LayoutInflater.from(this);
-        final View inflator = linf.inflate(R.layout.alert_distancia_busqueda, null);
-        AlertDialog.Builder builder= new AlertDialog.Builder(this);
 
-            builder.setPositiveButton( /** Listener de la opcion de navegar */
-              /*      msgNavegar, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            abrirNavigatorEnDestino(marcadorSelected);
-                            dialog.dismiss();
-                        }
-                    }
-            ).setNeutralButton( /** Listener de la opcion de marcar salida del estacionamiento */
-                /*    msgSalidaEstacionamiento, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            marcarSalidaEstacionamiento(marcadorSelected);
-                        }
-                    }
-            ).setNegativeButton( /** Listener de la opcion de cancelar */
-                  /*  msgCancelar, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    }
-            );*/
+        Location loc = new Location(ubicacionActual);
+        loc.setLatitude(marker.getPosition().latitude); //Actualizo la posicion a la del estacionamiento
+        loc.setLongitude(marker.getPosition().longitude);
+        enfocarMapaEnUbicacion(loc); //Enfoco el mapa al estacionamiento para que se vea mejor
+
         final Dialog dialogTest = new Dialog(this); // Context, this, etc.
         dialogTest.setContentView(R.layout.custom_info_window_estacionamiento);
         dialogTest.setTitle(msgTituloDialog);
@@ -555,6 +532,8 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
         final Button btnSalidaEntrada = (Button) dialogTest.findViewById(R.id.btnSalir_EntrarEstacionamiento);
         Button btnCancelar = (Button) dialogTest.findViewById(R.id.btnCancelar);
         btnAbrirNavigator.setText(msgNavegar);
+
+
         if(lugarEstacionamientoGuardado == false){
             btnSalidaEntrada.setText(msgEstacionarAqui);
         }
@@ -692,10 +671,10 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
             String msgToast = location.getLatitude() + ", " + location.getLongitude();
 
             //Muevo la camara
-            mapa.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(location.getLatitude(),location.getLongitude())));
+            mapa.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(),location.getLongitude()),17f),200,null);
 
             //Le doy zoom
-            mapa.animateCamera(CameraUpdateFactory.zoomTo(17f));
+            //mapa.animateCamera(CameraUpdateFactory.zoomTo(17f));
             //TODO  Sacar el toast en un futuro
           //  Toast.makeText(this, msgToast, Toast.LENGTH_LONG).show();
         }
