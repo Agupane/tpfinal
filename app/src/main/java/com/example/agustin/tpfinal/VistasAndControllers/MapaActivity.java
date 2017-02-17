@@ -569,7 +569,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                 /** Se ejecuta si el vehiculo no esta estacionado */
                 if(btnSalidaEntrada.getText().equals(msgEstacionarAqui) && lugarEstacionamientoGuardado == false){
                     Log.v(TAG_MENU,"Estacionando en ubicacion actual");
-                    estacionarEnParque(marker.getPosition());
+                    estacionarEnParque(marker);
                     lugarEstacionamientoGuardado = true;
                     btnSalidaEntrada.setText(msgSalidaEstacionamiento);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgVerEstacionamiento);
@@ -1090,11 +1090,11 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
         pickerMin = minute;
     }
 
-    private void estacionarEnParque(LatLng position){
+    private void estacionarEnParque(Marker parque){
         String msg;
         Location locationParque = new Location(ubicacionActual);
-        locationParque.setLatitude(position.latitude);
-        locationParque.setLongitude(position.longitude);
+        locationParque.setLatitude(parque.getPosition().latitude);
+        locationParque.setLongitude(parque.getPosition().longitude);
         if (mGoogleApiClient.isConnected() && ubicacionActual != null) {
             estCalle = new UbicacionVehiculoEstacionado(locationParque);
             estCalle.setHoraIngreso(System.currentTimeMillis());
@@ -1102,7 +1102,12 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
             mAddressRequested = false;
             msg = getResources().getString(R.string.parkLoggerEstacionamientoExitoso);
             Toast.makeText(this,msg,Toast.LENGTH_LONG);
+            //markerUltimoEstacionamiento = parque;
             markerUltimoEstacionamiento = agregarMarcadorEstacionamiento(estCalle);
+            /** Agrego el objeto del vehiculo estacionado al marcador */
+            markerUltimoEstacionamiento.setTag(estCalle);
+            /* Cambio el icono del parque por el icono del auto para indicar que ahi se estaciono */
+           // markerUltimoEstacionamiento.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.icn_menu_auto));
             /* Agrego el marcador a la lista de marcadores */
             mapaMarcadores.put(markerUltimoEstacionamiento.getId(),markerUltimoEstacionamiento);
             /* Agrego la alarma que se asocia al estacionamiento del usuario */
