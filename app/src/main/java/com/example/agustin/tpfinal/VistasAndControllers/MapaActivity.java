@@ -764,7 +764,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
         Button btnIrAlEstacionamiento = (Button) dialogTest.findViewById(R.id.btnIrAlEstacionamiento);
         Button btnCancelar = (Button) dialogTest.findViewById(R.id.btnCancelar);
         TextView msgDialog = (TextView) dialogTest.findViewById(R.id.tvMsgRecordatorio);
-        msgDialog.setText(texto);
+        msgDialog.setText(texto)    ;
         /** Listener de la opcion de ir a la ubicacion del estacionamiento */
         btnIrAlEstacionamiento.setOnClickListener(new View.OnClickListener() {
             @Override
