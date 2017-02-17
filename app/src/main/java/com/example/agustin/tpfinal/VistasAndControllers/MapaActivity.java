@@ -509,11 +509,12 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
     /**
      * Evento que aparece cuando se hace clik sobre el info windows de un marcador
      */
-    public void onInfoWindowClick(Marker marker) {
+    public void onInfoWindowClick(final Marker marker) {
         marcadorSelected = marker;
         final String msgSalidaEstacionamiento = getResources().getString(R.string.btnMarcarSalida);
         final String msgEstacionarAqui = getResources().getString(R.string.menuOptEstacionarAqui);
-        String msgNavegar = getResources().getString(R.string.btnAbrirEnNavigator);
+        final String msgNavegar = getResources().getString(R.string.btnAbrirEnNavigator);
+        final String msgVerEstacionamiento = getResources().getString(R.string.btnIrAlEstacionamiento);
         String msgCancelar = getResources().getString(R.string.btnCancelar);
         String msgTituloDialog = getResources().getString(R.string.menuDialogTitulo);
 
@@ -536,9 +537,13 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
 
         if(lugarEstacionamientoGuardado == false){
             btnSalidaEntrada.setText(msgEstacionarAqui);
+            btnSalidaEntrada.setEnabled(true);
+
         }
         else{
             btnSalidaEntrada.setText(msgSalidaEstacionamiento);
+            btnSalidaEntrada.setEnabled(false);
+
         }
         btnCancelar.setText(msgCancelar);
         /** Listener de la opcion de navegar */
@@ -554,7 +559,7 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
             btnSalidaEntrada.setEnabled(true);
         }
         else{
-            btnSalidaEntrada.setEnabled(false);
+            //btnSalidaEntrada.setEnabled(false);
         }
 
         /** Listener de la opcion de marcar salida del estacionamiento */
@@ -564,10 +569,10 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                 /** Se ejecuta si el vehiculo no esta estacionado */
                 if(btnSalidaEntrada.getText().equals(msgEstacionarAqui) && lugarEstacionamientoGuardado == false){
                     Log.v(TAG_MENU,"Estacionando en ubicacion actual");
-                    estacionarEnPosicionActual();
+                    estacionarEnParque(marker.getPosition());
                     lugarEstacionamientoGuardado = true;
                     btnSalidaEntrada.setText(msgSalidaEstacionamiento);
-                    menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgSalidaEstacionamiento);
+                    menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ESTACIONAR_AQUI).setTitle(msgVerEstacionamiento);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_LIMPIAR).setEnabled(true);
                     menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(true);
                     dialogTest.dismiss();
@@ -587,8 +592,9 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
                         menuLateral.getItem(ConstantsMenuNavegacion.INDICE_MENU_ALARMA).setEnabled(false);
                         dialogTest.dismiss();
                     }
+                    marcarSalidaEstacionamiento(marcadorSelected);
                 }
-                marcarSalidaEstacionamiento(marcadorSelected);
+
             }
         });
         /** Listener de la opcion de cancelar */
@@ -1082,5 +1088,30 @@ public class MapaActivity extends AppCompatActivity implements TimePicker.OnTime
     public void onTimeChanged(TimePicker timePicker, int hourOfDay, int minute) {
         pickerHour = hourOfDay;
         pickerMin = minute;
+    }
+
+    private void estacionarEnParque(LatLng position){
+        String msg;
+        Location locationParque = new Location(ubicacionActual);
+        locationParque.setLatitude(position.latitude);
+        locationParque.setLongitude(position.longitude);
+        if (mGoogleApiClient.isConnected() && ubicacionActual != null) {
+            estCalle = new UbicacionVehiculoEstacionado(locationParque);
+            estCalle.setHoraIngreso(System.currentTimeMillis());
+            startAddressFetchService();
+            mAddressRequested = false;
+            msg = getResources().getString(R.string.parkLoggerEstacionamientoExitoso);
+            Toast.makeText(this,msg,Toast.LENGTH_LONG);
+            markerUltimoEstacionamiento = agregarMarcadorEstacionamiento(estCalle);
+            /* Agrego el marcador a la lista de marcadores */
+            mapaMarcadores.put(markerUltimoEstacionamiento.getId(),markerUltimoEstacionamiento);
+            /* Agrego la alarma que se asocia al estacionamiento del usuario */
+            agregarAlarma(markerUltimoEstacionamiento);
+            Log.v(TAG,msg);
+            persistirUbicacion(estCalle);
+        }
+        mAddressRequested = true;
+
+
     }
 }
